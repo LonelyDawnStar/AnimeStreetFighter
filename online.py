@@ -47,7 +47,7 @@ async def http_api(request):
  result=invoke(action,data)
  return web.json_response(result)
 
-STATIC_FILES={'/':'index.html',**{'/'+name:name for name in (
+STATIC_FILES={'/gojo-art.js':'gojo-art.js','/':'index.html',**{'/'+name:name for name in (
  'app.js','style.css','graphics.js','motions.html','motions.js','royal.css',
  'royal.js','mobile.css','mobile.js','match.css','match.js','gil-cinema.js','lancer-cinema.js','emiya-cinema.js','cinematic.js','rider-cinema.js','result.js','original-cinema.js','ultimate.html')}}
 
@@ -162,4 +162,5 @@ def make_app():
  for path in STATIC_FILES:app.router.add_get(path,static)
  app.on_startup.append(start);app.on_shutdown.append(stop)
  return app
+
 

@@ -4,7 +4,7 @@ const NobleCinema=(()=>{
  const subtitles={saber:'약속된 승리의 검',archer:'무한의 검제',lancer:'게이 볼그',gil:'에누마 엘리시',iskandar:'왕의 군세',medusa:'기영의 고삐 · 벨레로폰',berserker:'열두 번의 시련 · 갓 핸드'};
  const durations={...OriginalCinema.durations,archer:460/60,iskandar:7.5,medusa:7};
  const ready=Promise.all([EmiyaCinema.ready,RiderCinema.ready,OriginalCinema.ready]);ready.catch(()=>{});
- function draw(g,state){const scene=state.cinematic;if(!scene)return;
+ function draw(g,state){const scene=state.cinematic;if(!scene)return;if(scene.char==='gojo'){GojoArt.cinema(g,scene);return;}
   const titleDuration=scene.titleDuration??1;
   if(scene.elapsed<titleDuration){
    const width=Math.min(1280,Math.floor(scene.elapsed/.45*1280/8)*8);
@@ -26,3 +26,4 @@ const NobleCinema=(()=>{
  }
  return {ready,draw,durations,names,subtitles};
 })();
+

@@ -1,6 +1,7 @@
 """Grail Duel online. Python 3.10+ and aiohttp."""
 import json, math, os, random, secrets, threading, time
 import augments as aug
+import gojo
 from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 from pathlib import Path
 
@@ -8,6 +9,7 @@ ROOT = Path(__file__).parent / 'static'
 LOCK = threading.RLock()
 ROOMS = {}
 CHARS = {
+ 'gojo': dict(name='고죠 사토루',color='#9acfff',speed=285,reach=100,damage=9,np='HOLLOW PURPLE'),
  'saber': dict(name='알트리아',color='#79c9ff',speed=270,reach=120,damage=10,np='EXCALIBUR'),
  'archer': dict(name='에미야',color='#ff7878',speed=290,reach=112,damage=9,np='UNLIMITED BLADE WORKS'),
  'lancer': dict(name='쿠 훌린',color='#65ede1',speed=295,reach=138,damage=8,np='GAE BOLG'),
@@ -19,9 +21,10 @@ KEYS={'left','right','jump','guard','light','heavy','skill','dash','np','seal'}
 TREASURY=('longsword','spear','axe','greatsword','halberd','sickle')
 NP_TITLE_DURATION=1.0
 NP_MAX_DURATION=9.0
-NP_SOURCE_DURATION={'saber':7.2,'archer':460/60,'lancer':6.4,'gil':7.6,'berserker':6.6,'iskandar':7.5,'medusa':7.0}
+NP_SOURCE_DURATION={'gojo':3.5,'saber':7.2,'archer':460/60,'lancer':6.4,'gil':7.6,'berserker':6.6,'iskandar':7.5,'medusa':7.0}
 NP_DURATION={char:min(seconds,NP_MAX_DURATION-NP_TITLE_DURATION) for char,seconds in NP_SOURCE_DURATION.items()}
 COMBAT = {
+ 'gojo': dict(light=.25,heavy=.5,skill_cool=.85,skill_cost=28,skill_damage=18,np_damage=36),
  'saber': dict(light=.24,heavy=.48,skill_cool=.65,skill_cost=28,skill_damage=15,np_damage=34),
  'archer': dict(light=.24,heavy=.46,skill_cool=1.15,skill_cost=24,skill_damage=28,np_damage=32),
  'lancer': dict(light=.30,heavy=.58,skill_cool=.75,skill_cost=32,skill_damage=11,np_damage=32),
@@ -54,7 +57,7 @@ def bot_input(r,p,enemy,dt,rng=None):
  ultimate=False;danger=False
  for shot in r['shots']:
   if r['players'][shot['owner']] is p:continue
-  ult=shot['kind'] in ('np','ea_beam','greatslash','army_charge','pegasus_charge')
+  ult=shot['kind'] in ('np','ea_beam','greatslash','army_charge','pegasus_charge','purple')
   if shot['kind'] in ('ea_beam','greatslash'):
    approaching=(p['x']-shot['x'])*shot.get('face',1)>=-30
   else:approaching=(p['x']-shot['x'])*shot.get('v',0)>=0 and abs(p['x']-shot['x'])<160+abs(shot.get('v',0))*(cfg['reaction']+.12)
@@ -102,7 +105,7 @@ def validate_settings(data):
  return result
 
 def character_catalog():
- return {'augments':aug.catalog(),'characters':{k:{**v,**COMBAT[k], 'hp':100,'mana':100,'manaRegen':11,'heavyDamage':v['damage']*1.7,'heavyCost':12,'heavyReach':v['reach']+30,'skillWindup':{'saber':.24,'archer':.9,'lancer':.3,'gil':0,'iskandar':.32,'medusa':.25,'berserker':.48}[k],'skillVelocity':{'saber':820,'archer':1150,'lancer':1000,'gil':670,'iskandar':560,'medusa':950,'berserker':0}[k],'skillHits':3 if k=='gil' else 1,'npHits':0 if k=='berserker' else 12 if k=='gil' else 1,'npEffect':'체력 12% 회복 · 6초간 피해 35% 감소 · 효과 중 치명타를 받으면 체력 20%로 재기(라운드당 1회)' if k=='berserker' else '공격형 보구','npDuration':NP_TITLE_DURATION+NP_DURATION[k],'dashCost':18,'dashDistance':145,'dashInv':.17,'dashCooldown':.25,'guardReduction':82,'guardCost':6,'sealCount':3,'sealHeal':28} for k,v in CHARS.items()}}
+ return {'augments':aug.catalog(),'characters':{k:{**v,**COMBAT[k], 'hp':100,'mana':100,'manaRegen':11,'heavyDamage':v['damage']*1.7,'heavyCost':12,'heavyReach':v['reach']+30,'skillWindup':{'saber':.24,'archer':.9,'lancer':.3,'gil':0,'iskandar':.32,'medusa':.25,'berserker':.48,'gojo':.32}[k],'skillVelocity':{'saber':820,'archer':1150,'lancer':1000,'gil':670,'iskandar':560,'medusa':950,'berserker':0,'gojo':850}[k],'skillHits':3 if k=='gil' else 1,'npHits':0 if k=='berserker' else 12 if k=='gil' else 1,'npEffect':'체력 12% 회복 · 6초간 피해 35% 감소 · 효과 중 치명타를 받으면 체력 20%로 재기(라운드당 1회)' if k=='berserker' else '허식 자: 고정 기본 피해 36 · 가드/보호막 적용, 회피 가능. HP 30% 이하: 무량공처 1.5초 양측 행동 제한 → 조준 고정 → 0.7초 회피 틈 → 자. 원작을 대전용으로 재구성' if k=='gojo' else '공격형 보구','npDuration':NP_TITLE_DURATION+NP_DURATION[k],'dashCost':18,'dashDistance':145,'dashInv':.17,'dashCooldown':.25,'guardReduction':82,'guardCost':6,'sealCount':3,'sealHeal':28} for k,v in CHARS.items()}}
 
 def begin_draft(r):
  first=secrets.randbelow(2)
@@ -126,7 +129,7 @@ def start_round(r):
  else:setup(r)
 
 def setup(r):
- r.pop('cinematic',None);r.pop('result',None);r.pop('augmentation',None)
+ r.pop('cinematic',None);r.pop('result',None);r.pop('augmentation',None);r.pop('gojoCast',None);r.pop('domain',None)
  rule=settings(r)
  for i,p in enumerate(r['players']):
   p.pop('_ai',None);p.pop('rematch',None)
@@ -154,18 +157,19 @@ def public_rooms():
   rooms.append(dict(code=r['code'],host=ps[0]['char'],players=len(ps),capacity=2,phase=r['phase'],joinable=joinable))
  return {'rooms':sorted(rooms,key=lambda r:(not r['joinable'],r['code']))}
 
-def hit(r,a,b,damage,knock=35,ultimate=False,skill=False,proc=False):
- if b['inv']>0 or (b.get('dashInv',0)>0 and not ultimate):return False
+def hit(r,a,b,damage,knock=35,ultimate=False,skill=False,proc=False,fixed=False,dodgeable=False):
+ if b['inv']>0 or (b.get('dashInv',0)>0 and (not ultimate or dodgeable)):return False
  guard_cost=max(1,6-aug.value(b,'guardCost'))
  blocked='guard' in b['keys'] and b['y']==0 and b['stun']<=0 and b['cool']<=0 and b['mana']>=guard_cost
  if blocked:b['mana']-=guard_cost
  multiplier=1+aug.value(a,'attack')
  if b['hp']<=b.get('maxHp',100)*.35:multiplier+=aug.value(a,'execute')
  if a['hp']<=a.get('maxHp',100)*.35:multiplier+=aug.value(a,'comeback')
- damage*=settings(r)['attack']*min(3,multiplier)*(1+min(1.5,aug.value(a,'skillDamage')) if skill else 1)
+ if not fixed:damage*=settings(r)['attack']*min(3,multiplier)*(1+min(1.5,aug.value(a,'skillDamage')) if skill else 1)
  armor=min(.6,aug.value(b,'armor'))
  actual=damage*(.18 if blocked else 1)*(.65 if b.get('godTime',0)>0 else 1)*(1-armor)
  if b['hp']<=b.get('maxHp',100)*.35:actual*=1-min(.6,aug.value(b,'lastArmor'))
+ if fixed:actual=damage*(.18 if blocked else 1)
  absorbed=min(b.get('shield',0),actual);b['shield']=max(0,b.get('shield',0)-absorbed);actual-=absorbed
  lost=min(b['hp'],actual)
  if b.get('dummy'):b['damageTaken']=round(b.get('damageTaken',0)+actual,2);b['lastDamage']=round(actual,2)
@@ -193,6 +197,7 @@ def hit(r,a,b,damage,knock=35,ultimate=False,skill=False,proc=False):
  return True
 
 def release_np(r,scene):
+ if scene['char']=='gojo':gojo.release(r,scene);return
  ps=r['players']
  p=ps[scene['owner']];ch=CHARS[p['char']]
  p.update(action='np_release',anim=1.1,animMax=1.1,cool=1.1)
@@ -258,6 +263,7 @@ def tick(r,dt,now):
    release_np(r,scene)
   return
  if not r.get('training'):r['clock']=max(0,r['clock']-dt)
+ gojo_locked=gojo.advance(r,dt)
  r['fx']=[dict(f,life=f['life']-dt) for f in r['fx'] if f['life']>dt]
  for i,p in enumerate(ps):
   enemy=ps[1-i];ch=dict(CHARS[p['char']]);combat=dict(COMBAT[p['char']]);aug.tick(p,dt)
@@ -268,6 +274,9 @@ def tick(r,dt,now):
   if mode:combat['skill_cost'],combat['skill_cool']=aug.SKILLS[mode][:2]
   combat['skill_cost']*=max(.25,1-aug.value(p,'skillCost'))
   for key in ('light','heavy','skill_cool'):combat[key]/=rate
+  if i in gojo_locked:
+   for key in ('cool','stun','inv','dashInv','anim'):p[key]=max(0,p.get(key,0)-dt)
+   continue
   if p.get('dummy'):
    p.update(keys=[],queued=[],prev=[],stun=max(0,p['stun']-dt),action='idle',anim=0,moving=False)
    continue
@@ -299,12 +308,18 @@ def tick(r,dt,now):
   elif 'np' in pressed and p['np']>=100:
    p['np']=min(80,aug.value(p,'npRefund'));p['moving']=False;p['action']='np';p['anim']=p['animMax']=NP_TITLE_DURATION+NP_DURATION[p['char']];p['cool']=p['anim']
    r['cinematic']=dict(owner=i,char=p['char'],face=p['face'],elapsed=0,titleDuration=NP_TITLE_DURATION,duration=p['anim'],playbackRate=NP_SOURCE_DURATION[p['char']]/NP_DURATION[p['char']])
+   if p['char']=='gojo':
+    r['cinematic'].update(variant='void' if p['hp']<=p['maxHp']*.3 else 'purple',titleDuration=0,duration=4.5,playbackRate=1)
    if settings(r)['skipCinema']:release_np(r,r['cinematic'])
    for other in ps:other.update(queued=[],prev=list(other['keys']))
    return
   elif 'skill' in pressed and p['mana']>=combat['skill_cost']:
    p['mana']-=combat['skill_cost'];p['cool']=combat['skill_cool'];p['anim']=p['animMax']=.5/rate;p['action']='skill'
    if aug.skill(r,i,rate):continue
+   if p['char']=='gojo':
+    p.update(action='red',anim=combat['skill_cool'],animMax=combat['skill_cool'],moving=False)
+    r['shots'].append(dict(kind='red',owner=i,x=p['x']+p['face']*65,y=p['y']+140,v=p['face']*850,face=p['face'],radius=24,life=1.5,delay=.32/rate,damage=18,elapsed=0))
+    continue
    if p['char']=='berserker':
     p.update(action='axe_slam',anim=combat['skill_cool'],animMax=combat['skill_cool'],moving=False)
     r['shots'].append(dict(x=p['x'],y=p['y'],v=0,face=p['face'],owner=i,damage=combat['skill_damage'],life=.30,kind='axe_slam',delay=.48/rate,hit=False,elapsed=0))
@@ -339,6 +354,9 @@ def tick(r,dt,now):
   mid=max(88,min(1192,mid));a['x']=mid-d*33;b['x']=mid+d*33
  shots=[]
  for s in r['shots']:
+  if s['kind'] in ('purple','red'):
+   if gojo.shot(r,s,dt,hit):shots.append(s)
+   continue
   if s['kind'] in ('aug_orb','aug_nova'):
    a=ps[s['owner']];b=ps[1-s['owner']]
    flight=max(0,dt-s['delay']);s['delay']=max(0,s['delay']-dt)
@@ -444,6 +462,7 @@ def tick(r,dt,now):
  if any(p['hp']<=0 for p in ps) or r['clock']<=0:
   winner=0 if ps[0]['hp']>ps[1]['hp'] else 1 if ps[1]['hp']>ps[0]['hp'] else None
   if winner is not None:r['score'][winner]+=1
+  r.pop('gojoCast',None);r.pop('domain',None)
   r['banner']='DRAW' if winner is None else CHARS[ps[winner]['char']]['name']+' WIN'
   final=max(r['score'])>=settings(r)['bestOf']//2+1
   duration=4.0 if final else 3.2
@@ -578,3 +597,4 @@ if __name__=='__main__':
  import sys
  sys.modules['server']=sys.modules[__name__]
  main()
+
