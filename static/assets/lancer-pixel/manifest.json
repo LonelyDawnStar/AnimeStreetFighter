@@ -1,0 +1,16 @@
+{
+  "width": 320,
+  "height": 180,
+  "columns": 5,
+  "framesPerPage": 30,
+  "frameCount": 120,
+  "fps": 30,
+  "duration": 4.0,
+  "pages": [
+    "page-00.png",
+    "page-01.png",
+    "page-02.png",
+    "page-03.png"
+  ],
+  "heldMissingFrames": []
+}
