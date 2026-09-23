@@ -1,7 +1,7 @@
 'use strict';
 const $=id=>document.getElementById(id),defs={saber:{name:'알트리아',cls:'SABER',color:'#79c9ff',body:'#274b9d',hair:'#f2d788',style:'균형 · 검술',desc:'L: 스트라이크 에어 · 바람 참격. 보구: 거대 마력 검을 휘두르는 엑스칼리버',np:'EXCALIBUR'},archer:{name:'에미야',cls:'ARCHER',color:'#ff7878',body:'#ae3544',hair:'#e6e8ed',style:'기동 · 투사체',desc:'L: 칼라드볼그 · 0.9초 충전 후 피해 28 · 마나 24. 충전 중 피격 시 취소. 보구: 무한의 검제',np:'UNLIMITED BLADE WORKS'},lancer:{name:'쿠 훌린',cls:'LANCER',color:'#65ede1',body:'#247297',hair:'#244877',style:'속도 · 긴 사거리',desc:'L: 투창 · 게이 볼그를 던져 견제. 보구: 게이 볼그',np:'GAE BOLG'},gil:{name:'길가메시',cls:'ARCHER',color:'#ffd477',body:'#c79b46',hair:'#f1d87e',style:'견제 · 연속 투사체',desc:'세 발의 투사체로 공간을 장악. 보구: 에누마 엘리시',np:'ENUMA ELISH'}};
 Object.assign(defs,{berserker:{name:'헤라클레스',cls:'BERSERKER',color:'#dc9464',style:'중량 · 재기',desc:'L: 부검 내려치기 · 준비 0.48초 / 피해 24. U: 갓 핸드 · 체력 12% 회복, 6초 피해 35% 감소, 효과 중 1회 재기(라운드당 1회). 원작 능력을 대전용으로 조정',np:'GOD HAND'},iskandar:{name:'이스칸다르',cls:'RIDER',color:'#e6aa62',style:'중량 · 돌격',desc:'L: 검을 앞세운 돌격 · 피해 22. 보구: 왕의 군세 · 군대와 함께 돌진',np:'IONIOI HETAIROI'},medusa:{name:'메두사',cls:'RIDER',color:'#bf99ec',style:'기동 · 사슬 견제',desc:'L: 사슬 단검 투척 · 피해 14. 보구: 벨레로폰 · 페가수스 돌진',np:'BELLEROPHON'}});
-let selected='saber',session=null,state=null,keys=new Set(),pending=new Set(),generation=0,sound=false,audio=null,lastHealth=null,smoothed=[],lastFrame=0;
+let selected='saber',session=null,state=null,keys=new Set(),pending=new Set(),generation=0,lastHealth=null,smoothed=[],lastFrame=0;
 function polygon(c,pts,color){c.fillStyle=color;c.beginPath();pts.forEach(([x,y],i)=>i?c.lineTo(x,y):c.moveTo(x,y));c.closePath();c.fill()}
 function line(c,x,y,a,b,color,w){c.strokeStyle=color;c.lineWidth=w;c.lineCap='round';c.beginPath();c.moveTo(x,y);c.lineTo(a,b);c.stroke()}
 function fighter(c,p,t,scale=1){GrailArt.fighter(c,p,t,scale)}
@@ -30,9 +30,9 @@ function send(msg){
  socket.send(JSON.stringify(msg));return true;
 }
 $('ready').onclick=()=>{if(!send({type:'ready'}))error('서버에 다시 연결하는 중입니다.')};
-function leaveRoom(){window.matchControls?.closeSettings();document.body.classList.remove('pregame','result-active');if(session)api('leave',session).finally(()=>refreshRooms()).catch(()=>{});NobleCinema.draw(c,{});session=null;state=null;generation++;stopTransport();forget();clearKeys();$('lobby').hidden=false;$('game').hidden=true;$('connection').textContent='LOBBY';history.replaceState(null,'',location.pathname)}
+function leaveRoom(){DuelSound.reset();window.matchControls?.closeSettings();document.body.classList.remove('pregame','result-active');if(session)api('leave',session).finally(()=>refreshRooms()).catch(()=>{});NobleCinema.draw(c,{});session=null;state=null;generation++;stopTransport();forget();clearKeys();$('lobby').hidden=false;$('game').hidden=true;$('connection').textContent='LOBBY';history.replaceState(null,'',location.pathname)}
 $('leave').onclick=leaveRoom;
-function applyState(s){state=s;updateUI();if(lastHealth&&s.players.some((p,i)=>p.hp<lastHealth[i])){beep();impactUntil=performance.now()+110;}lastHealth=s.players.map(p=>p.hp)}
+function applyState(s){DuelSound.observe(s,session?.slot);state=s;updateUI();if(lastHealth&&s.players.some((p,i)=>p.hp<lastHealth[i])){impactUntil=performance.now()+110;}lastHealth=s.players.map(p=>p.hp)}
 function connect(gen){
  if(!session||gen!==generation)return;
  stopTransport();$('connection').textContent='CONNECTING';
@@ -85,11 +85,93 @@ function setInputSource(source,values){
  for(const key of next)if(!keys.has(key))pending.add(key);
  keys.clear();for(const key of next)keys.add(key);
 }
-window.addEventListener('keydown',e=>{if(!session||state?.phase!=='fight'||$('roomSettings').open||!map[e.code]||['INPUT','TEXTAREA','SELECT','BUTTON'].includes(e.target.tagName))return;e.preventDefault();setInputSource('keyboard:'+e.code,[map[e.code]])});
+window.addEventListener('keydown',e=>{if(!session||DuelSound.blocked()||state?.phase!=='fight'||$('roomSettings').open||!map[e.code]||['INPUT','TEXTAREA','SELECT','BUTTON'].includes(e.target.tagName))return;e.preventDefault();setInputSource('keyboard:'+e.code,[map[e.code]])});
 window.addEventListener('keyup',e=>{setInputSource('keyboard:'+e.code,[])});
 function clearKeys(){window.arcadeControls?.reset();inputSources.clear();keys.clear();pending.clear();send({type:'input',keys:[]})}
 window.addEventListener('blur',clearKeys);document.addEventListener('visibilitychange',()=>{if(document.hidden)clearKeys()});
-$('sound').onclick=()=>{sound=!sound;if(sound){audio??=new (window.AudioContext||window.webkitAudioContext)();audio.resume()}$('sound').textContent=sound?'소리 끄기':'소리 켜기'};function beep(){if(!sound||!audio)return;const o=audio.createOscillator(),g=audio.createGain();o.type='triangle';o.frequency.setValueAtTime(170,audio.currentTime);o.frequency.exponentialRampToValueAtTime(45,audio.currentTime+.09);g.gain.setValueAtTime(.12,audio.currentTime);g.gain.exponentialRampToValueAtTime(.001,audio.currentTime+.12);o.connect(g);g.connect(audio.destination);o.start();o.stop(audio.currentTime+.13)}
+// Original synthesized score and effects: no downloads, no copyrighted samples.
+const DuelSound=(()=>{
+ const defaults={enabled:true,music:.18,effects:.55};let prefs={...defaults};try{const saved=JSON.parse(localStorage.getItem('grail-audio-v1'));if(saved){prefs.enabled=typeof saved.enabled==='boolean'?saved.enabled:true;for(const k of ['music','effects'])if(Number.isFinite(saved[k]))prefs[k]=Math.max(0,Math.min(1,saved[k]))}}catch{}
+ let ctx=null,master=null,music=null,effects=null,noise=null,unlocked=false,previous=null,lastObserve=0,step=0,next=0,mode='',current=null,voices=0;
+ const cooldown=new Map();
+ function save(){try{localStorage.setItem('grail-audio-v1',JSON.stringify(prefs))}catch{}volumes()}
+ function volumes(){if(!ctx)return;master.gain.setTargetAtTime(prefs.enabled&&!document.hidden?.65:0,ctx.currentTime,.025);music.gain.setTargetAtTime(prefs.music*(current?.cinematic?.25:1),ctx.currentTime,.08);effects.gain.setTargetAtTime(prefs.effects,ctx.currentTime,.025)}
+ async function unlock(){if(!prefs.enabled||(ctx?.state==='running'&&unlocked))return;try{if(!ctx){const Audio=window.AudioContext||window.webkitAudioContext;if(!Audio)return;ctx=new Audio();master=ctx.createGain();music=ctx.createGain();effects=ctx.createGain();const limiter=ctx.createDynamicsCompressor();limiter.threshold.value=-12;limiter.knee.value=12;limiter.ratio.value=6;limiter.attack.value=.003;limiter.release.value=.12;music.connect(master);effects.connect(master);master.connect(limiter);limiter.connect(ctx.destination);noise=ctx.createBuffer(1,ctx.sampleRate*.5,ctx.sampleRate);const data=noise.getChannelData(0);for(let i=0;i<data.length;i++)data[i]=Math.random()*2-1;volumes()}await ctx.resume();unlocked=true;next=ctx.currentTime}catch{}}
+ function tone(freq,duration=.14,amp=.12,type='triangle',when=0,target=null,end=null){if(!ctx||ctx.state!=='running'||!prefs.enabled||document.hidden||voices>=36)return;const t=Math.max(ctx.currentTime,when),o=ctx.createOscillator(),g=ctx.createGain();voices++;o.type=type;o.frequency.setValueAtTime(Math.max(20,freq),t);if(end)o.frequency.exponentialRampToValueAtTime(Math.max(20,end),t+duration);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(Math.max(.0002,amp),t+.008);g.gain.exponentialRampToValueAtTime(.0001,t+duration);o.connect(g);g.connect(target||effects);o.onended=()=>{o.disconnect();g.disconnect();voices--};o.start(t);o.stop(t+duration+.015)}
+ function hiss(duration=.10,amp=.1,freq=1800,when=0,target=null){if(!ctx||ctx.state!=='running'||!prefs.enabled||document.hidden||voices>=36)return;const t=Math.max(ctx.currentTime,when),src=ctx.createBufferSource(),filter=ctx.createBiquadFilter(),g=ctx.createGain();voices++;src.buffer=noise;filter.type='bandpass';filter.frequency.value=freq;filter.Q.value=.7;g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(amp,t+.005);g.gain.exponentialRampToValueAtTime(.0001,t+duration);src.connect(filter);filter.connect(g);g.connect(target||effects);src.onended=()=>{src.disconnect();filter.disconnect();g.disconnect();voices--};src.start(t);src.stop(t+duration+.01)}
+ const hz=n=>440*2**((n-69)/12);
+ function chime(notes,d=.1,amp=.12){if(!ctx)return;notes.forEach((n,i)=>tone(hz(n),.3,amp,'triangle',ctx.currentTime+i*d))}
+ function play(kind,key=kind,char=''){
+  if(!ctx||!unlocked||!prefs.enabled||document.hidden||prefs.effects===0)return;
+  const now=ctx.currentTime;if(now-(cooldown.get(key)??-99)<.09)return;cooldown.set(key,now);
+  switch(kind){
+   case 'ui':tone(660,.055,.055);break;
+   case 'hit':hiss(.08,.20,1300);tone(120,.15,.18,'triangle',0,null,45);break;
+   case 'guard':tone(1450,.11,.10,'triangle',0,null,680);hiss(.07,.10,4000);break;
+   case 'light':hiss(.09,.09,3300);break;
+   case 'heavy':hiss(.18,.15,1700);tone(190,.15,.10,'sawtooth',0,null,75);break;
+   case 'dash':hiss(.16,.11,2500);tone(300,.13,.06,'sine',0,null,800);break;
+   case 'skill':{
+    const f={saber:660,archer:420,lancer:880,gil:1050,iskandar:150,medusa:740,berserker:100}[char]||550;
+    tone(f,.32,.12,'triangle',0,null,f*1.6);hiss(.18,.09,char==='berserker'?350:2600);break;
+   }
+   case 'seal':chime([72,79,84],.075,.13);break;
+   case 'np':tone(65,.9,.16,'sine',0,null,180);chime([50,57,62,69,74],.13,.13);hiss(.4,.10,900);break;
+   case 'release':hiss(.4,.24,850);tone(110,.6,.22,'triangle',0,null,35);break;
+   case 'ready':chime([74,81,86],.09,.09);break;
+   case 'count':tone(660,.12,.11,'square');break;
+   case 'fight':chime([60,67,72],.07,.16);break;
+   case 'win':chime([60,64,67,72,79],.14,.14);break;
+   case 'lose':chime([67,63,60,55],.17,.11);break;
+   case 'draw':chime([60,67,60],.17,.10);break;
+   case 'augment':chime([72,76,83,88],.09,.10);break;
+  }
+ }
+ const castActions=new Set(['skill','caladbolg','strike_air','spear_throw','chain_throw','royal_charge','axe_slam']);
+ function observe(s,slot){
+  current=s;volumes();const stamp=performance.now(),old=previous;previous=JSON.parse(JSON.stringify({phase:s.phase,round:s.round,code:s.code,delay:s.delay,cinematic:s.cinematic,paused:s.paused,players:s.players,result:s.result}));
+  const gap=stamp-lastObserve;lastObserve=stamp;
+  if(!old||old.code!==s.code||gap>1200||s.paused||old.paused||document.hidden)return;
+  if(s.phase==='countdown'&&Math.ceil(s.delay)!==Math.ceil(old.delay??99))play('count','count:'+Math.ceil(s.delay));
+  if(s.phase==='fight'&&old.phase==='countdown')play('fight');
+  if(s.phase==='augment'&&old.phase!=='augment')play('augment');
+  if(s.cinematic&&!old.cinematic)play('np','np');
+  if(!s.cinematic&&old.cinematic&&s.phase==='fight')play('release');
+  if(s.result&&!old.result)play(s.result.winner==null?'draw':s.result.winner===slot?'win':'lose');
+  if(s.phase!=='fight'||s.cinematic)return;
+  s.players.forEach((p,i)=>{const q=old.players[i];if(!q)return;const fresh=p.action!==q.action||p.anim>q.anim+.06;
+   if(p.hp<q.hp||p.shield<(q.shield||0)||(p.damageTaken||0)>(q.damageTaken||0))play(p.action==='guard'?'guard':'hit','impact:'+i);
+   if(p.seals<q.seals)play('seal','seal:'+i);
+   if(p.np>=100&&q.np<100&&i===slot)play('ready');
+   if(fresh){if(castActions.has(p.action))play('skill','cast:'+i,p.char);else if(['light','heavy','dash'].includes(p.action))play(p.action,'action:'+i)}
+   if(p.action==='np_release'&&fresh&&!old.cinematic)play('release','release:'+i);
+  });
+ }
+ // Eight-bar original minor-key loop; restrained lobby arpeggio, drums in combat.
+ const roots=[50,50,46,46,53,53,48,45],melody=[0,7,12,10,7,3,7,12,14,12,7,3,10,7,3,2];
+ function schedule(){if(!ctx||ctx.state!=='running'||!prefs.enabled||document.hidden||prefs.music===0)return;
+  const s=current,newMode=s?.paused||s?.closed?'silent':s?.phase==='fight'?'fight':s?.phase==='ended'?'result':'lobby';
+  if(mode!==newMode){mode=newMode;step=0;next=ctx.currentTime+.04}
+  if(mode==='silent'||mode==='result')return;
+  if(next<ctx.currentTime-.2)next=ctx.currentTime+.03;
+  let count=0;while(next<ctx.currentTime+.15&&count++<3){const beat=step%16,bar=Math.floor(step/16)%8,root=roots[bar],fighting=mode==='fight',t=next;
+   if(beat%4===0){tone(hz(root-12),.5,.11,'triangle',t,music);tone(hz(root+7),.65,.035,'sine',t,music)}
+   tone(hz(root+12+melody[(beat+bar*2)%16]),fighting?.16:.32,fighting?.055:.035,'triangle',t,music);
+   if(fighting&&!s?.cinematic){if(beat%4===0)tone(100,.16,.15,'sine',t,music,35);if(beat%8===4)hiss(.11,.065,1500,t,music);if(beat%2===0)hiss(.035,.025,6500,t,music)}
+   step++;next+=(fighting?.145:.22);
+  }
+ }
+ setInterval(schedule,100);
+ document.addEventListener('pointerdown',()=>unlock(),{passive:true});document.addEventListener('keydown',()=>unlock());
+ document.addEventListener('visibilitychange',()=>{previous=null;if(document.hidden){if(ctx)ctx.suspend().catch(()=>{})}else if(unlocked&&prefs.enabled)unlock()});
+ const style=document.createElement('style');style.textContent='.duel-audio{color:#f2ead9;background:#142239;border:3px solid #d5bb7c;box-shadow:6px 6px #030914;width:min(390px,90vw);padding:24px;max-height:85dvh;overflow:auto}.duel-audio::backdrop{background:#030815bb}.duel-audio h2{margin:0 0 16px}.duel-audio label{display:grid;grid-template-columns:1fr auto;gap:8px;margin:18px 0;font-size:15px}.duel-audio input[type=range]{grid-column:1/-1;width:100%;min-height:30px;accent-color:#e6cd94}.duel-audio button{min-height:44px;margin:4px}.duel-audio p{font-size:12px;color:#c3d0e3}';document.head.append(style);
+ const dialog=document.createElement('dialog');dialog.className='duel-audio';dialog.setAttribute('aria-label','소리 설정');dialog.innerHTML='<h2>소리 설정</h2><button type="button" data-audio-toggle></button><label>배경음 <output data-music-value></output><input aria-label="배경음 볼륨" data-music type="range" min="0" max="100" step="1"></label><label>효과음 <output data-effects-value></output><input aria-label="효과음 볼륨" data-effects type="range" min="0" max="100" step="1"></label><p>메뉴 · 전투 배경음 / 타격 · 스킬 · 보구 · 승패 효과음</p><button type="button" data-audio-test>효과음 듣기</button><button type="button" data-audio-close>닫기</button>';document.body.append(dialog);
+ const toggle=dialog.querySelector('[data-audio-toggle]');function labels(){toggle.textContent=prefs.enabled?'전체 소리 끄기':'전체 소리 켜기';$('sound').textContent=prefs.enabled?'소리 설정 ♪':'소리 설정 · 꺼짐';for(const k of ['music','effects']){dialog.querySelector('[data-'+k+']').value=Math.round(prefs[k]*100);dialog.querySelector('[data-'+k+'-value]').textContent=Math.round(prefs[k]*100)+'%'}}
+ toggle.onclick=()=>{prefs.enabled=!prefs.enabled;save();labels();if(prefs.enabled)unlock()};for(const k of ['music','effects'])dialog.querySelector('[data-'+k+']').oninput=e=>{prefs[k]=Number(e.target.value)/100;save();labels()};dialog.querySelector('[data-audio-close]').onclick=()=>dialog.close();dialog.querySelector('[data-audio-test]').onclick=async()=>{await unlock();play('seal')};$('sound').onclick=()=>{clearKeys();dialog.showModal();unlock()};labels();
+ document.addEventListener('click',e=>{if(e.target.closest?.('button')&&!dialog.contains(e.target))play('ui')});
+ return {observe,reset(){previous=null;current=null;mode='';next=ctx?.currentTime||0},blocked:()=>dialog.open};
+})();
+
 // Native-resolution HUD: text never passes through the 640px pixel-art buffer.
 const CrispHUD=(()=>{
  const style=document.createElement('style');style.textContent=`
@@ -174,5 +256,6 @@ async function refreshRooms(){
 }
 $('refreshRooms').onclick=refreshRooms;$('onlyOpen').onchange=renderRooms;
 refreshRooms();
+
 
 
