@@ -1,18 +1,28 @@
 'use strict';
 (()=>{
- let catalog=null,lastSettings='',lastPhase='',lastDraft='',lastSeats='';
+ let catalog=null,lastSettings='',lastPhase='',lastDraft='',lastSeats='',augCatalog={},lastAug='',lastOwned='';
+ const extraRules=['carryNP','carryHP','resetSeals','augmentMode'];
+ const tiers={silver:'실버',gold:'골드',prism:'프리즘'};
  const fmt=n=>Number(n.toFixed(2));
  function details(char){
   if(!catalog)return;const d=catalog[char];$('detailTitle').textContent=defs[char].name+' · 상세 능력치';
   const groups=[['기본 능력',[['체력',d.hp],['마나 / 초당 회복',d.mana+' / '+d.manaRegen],['이동속도',d.speed],['기본 사거리',d.reach]]],['근접 공격',[['약공격 피해',d.damage],['약공격 간격',d.light+'초'],['초당 약공격',fmt(1/d.light)+'회'],['강공격 피해',fmt(d.heavyDamage)],['강공격 간격',d.heavy+'초'],['강공격 마나',d.heavyCost],['강공격 사거리',d.heavyReach]]],['L 스킬',[['피해',d.skill_damage+(d.skillHits>1?' × '+d.skillHits:'')],['마나',d.skill_cost],['시전 준비',d.skillWindup+'초'],['행동 제한 총시간',d.skill_cool+'초'],['스킬 이동속도',d.skillVelocity]]],['보구 / 방어',[['필요 보구 게이지','100%'],['보구 효과',d.npEffect],['보구 총피해',d.np_damage+(d.npHits>1?' / '+d.npHits+'회':'')],['보구 연출',fmt(d.npDuration)+'초'],['가드 피해 감소',d.guardReduction+'%'],['가드 마나',d.guardCost+' / 피격'],['회피 마나 / 거리',d.dashCost+' / '+d.dashDistance],['회피 무적 / 회복',d.dashInv+'초 / '+d.dashCooldown+'초'],['영주',d.sealCount+'개 · 최대 체력 '+d.sealHeal+'% 회복']]]];
   $('detailStats').replaceChildren();for(const [name,rows]of groups){const box=document.createElement('section'),h=document.createElement('h3'),dl=document.createElement('dl');h.textContent=name;for(const [label,value]of rows){const dt=document.createElement('dt'),dd=document.createElement('dd');dt.textContent=label;dd.textContent=value;dl.append(dt,dd)}box.append(h,dl);$('detailStats').append(box)}
  }
- fetch('/api/catalog').then(r=>{if(!r.ok)throw Error();return r.json()}).then(d=>{catalog=d.characters;details(selected)}).catch(()=>{$('detailStats').textContent='능력치를 불러오지 못했어요. 페이지를 새로고침해 주세요.'});
+ fetch('/api/catalog').then(r=>{if(!r.ok)throw Error();return r.json()}).then(d=>{catalog=d.characters;augCatalog=Object.fromEntries((d.augments||[]).map(a=>[a.id,a]));details(selected);if(state)updateUI()}).catch(()=>{$('detailStats').textContent='능력치를 불러오지 못했어요. 페이지를 새로고침해 주세요.'});
  $('saveSettings').onclick=()=>{
   const settings={bestOf:Number($('bestOf').value),hp:Number($('customHp').value),attack:Number($('customAttack').value),attackSpeed:Number($('customSpeed').value),skipCinema:$('skipCinema').checked};
+  for(const id of extraRules)settings[id]=$(id).checked;
+  if(settings.augmentMode&&settings.bestOf===1){error('증강 모드는 Bo3 또는 Bo5로 설정해 주세요.');return}
   if(![1,3,5].includes(settings.bestOf)||!Number.isInteger(settings.hp)||settings.hp<50||settings.hp>500||![settings.attack,settings.attackSpeed].every(v=>Number.isFinite(v)&&v>=.5&&v<=2)){error('체력 50~500, 배율 0.5~2 사이로 입력해 주세요.');return}
   if(!send({type:'settings',settings}))error('서버 연결을 확인해 주세요.');
  };
+ function renderOwned(s){
+  const key=JSON.stringify([s.code,s.players.map(p=>p.augments||[]),Object.keys(augCatalog).length]);
+  $('augmentInventory').hidden=!s.players.some(p=>p.augments?.length);
+  if(key===lastOwned)return;lastOwned=key;$('augmentOwned').replaceChildren();
+  s.players.forEach((p,i)=>{const section=document.createElement('section'),h=document.createElement('h3');h.textContent='P'+(i+1)+' '+defs[p.char].name;section.append(h);for(const id of p.augments||[]){const a=augCatalog[id],row=document.createElement('p'),name=document.createElement('strong');row.dataset.tier=a?.tier||'silver';name.textContent=(a?.name||id)+' · ';row.append(name,document.createTextNode(a?.description||''));section.append(row)}$('augmentOwned').append(section)});
+ }
  function closeSettings(){if($('roomSettings').open)$('roomSettings').close()}
  $('openSettings').onclick=()=>{clearKeys();$('roomSettings').showModal()};
  $('closeSettings').onclick=closeSettings;
@@ -20,16 +30,31 @@
  $('resultMenu').onclick=()=>leaveRoom();
  $('rematch').onclick=()=>{if(send({type:'rematch'}))$('rematch').disabled=true;else error('서버 연결을 확인해 주세요.')};
  function render(s,auth){
+  const augmenting=s.phase==='augment'&&!s.closed;
   const picking=['coin','draft'].includes(s.phase)&&!s.closed,waiting=s.phase==='waiting'&&!s.closed,ending=s.phase==='ended'&&!!s.result&&!s.closed;
-  document.body.classList.toggle('pregame',picking||waiting);document.body.classList.toggle('result-active',!!s.result&&!s.closed);
+  document.body.classList.toggle('pregame',picking||waiting||augmenting);document.body.classList.toggle('result-active',!!s.result&&!s.closed);
+  $('augmentPanel').hidden=!augmenting;
+  renderOwned(s);
   $('overlay').classList.toggle('final-overlay',ending);$('draftPanel').hidden=!picking;$('waitingRoom').hidden=!waiting;$('finalResult').hidden=!ending;$('ready').hidden=!waiting;
   for(const id of ['overTag','overTitle','overDesc'])$(id).hidden=ending;
   if(!waiting)closeSettings();
   const rule=s.settings||{bestOf:3,hp:100,attack:1,attackSpeed:1,skipCinema:false},signature=JSON.stringify(rule)+s.code;
-  if(signature!==lastSettings){lastSettings=signature;$('bestOf').value=rule.bestOf;$('customHp').value=rule.hp;$('customAttack').value=rule.attack;$('customSpeed').value=rule.attackSpeed;$('skipCinema').checked=rule.skipCinema;$('settingsStatus').textContent='서버에 적용된 규칙';}
+  if(signature!==lastSettings){lastSettings=signature;$('bestOf').value=rule.bestOf;$('customHp').value=rule.hp;$('customAttack').value=rule.attack;$('customSpeed').value=rule.attackSpeed;$('skipCinema').checked=rule.skipCinema;for(const id of extraRules)$(id).checked=!!rule[id];$('settingsStatus').textContent='서버에 적용된 규칙';}
   const host=auth?.slot===(s.host??0);$('hostLabel').textContent='P'+((s.host??0)+1)+(host?' · 나':' · 설정은 방장만 변경할 수 있어요');
-  for(const id of ['bestOf','customHp','customAttack','customSpeed','skipCinema','saveSettings'])$(id).disabled=!host||!waiting;
+  for(const id of ['bestOf','customHp','customAttack','customSpeed','skipCinema','saveSettings',...extraRules])$(id).disabled=!host||!waiting||(id==='augmentMode'&&!!s.training);
   if(s.phase!==lastPhase){clearKeys();lastPhase=s.phase}
+  if(augmenting){
+   const a=s.augmentation,pick=a.picks[auth.slot];
+   $('overlay').hidden=false;$('overTag').textContent='AUGMENT / ROUND '+s.round;$('overTitle').textContent=s.paused?'상대 재접속 대기':pick?'선택 완료':'이번 라운드의 증강을 선택하세요';$('overDesc').textContent='양쪽 모두 '+tiers[a.tier]+' 등급 · 3개 중 1개 선택';
+   $('augmentTier').textContent=tiers[a.tier].toUpperCase();$('augmentPanel').dataset.tier=a.tier;
+   $('augmentStatus').textContent=s.paused?'재접속 중에는 선택 시간이 멈춥니다.':pick?'상대의 선택을 기다리는 중 · '+Math.ceil(a.remaining)+'초':'남은 시간 '+Math.ceil(a.remaining)+'초 · 시간 초과 시 자동 선택';
+   const sig=JSON.stringify([s.code,s.round,a.offers[auth.slot],pick,s.paused,Object.keys(augCatalog).length]);
+   if(sig!==lastAug){lastAug=sig;$('augmentCards').replaceChildren();for(const [n,id]of a.offers[auth.slot].entries()){
+    const data=augCatalog[id],b=document.createElement('button');b.type='button';b.className='augment-card';b.classList.toggle('chosen',id===pick);b.disabled=!!pick||!!s.paused||!data;
+    const icon=document.createElement('span'),tier=document.createElement('small'),title=document.createElement('strong'),desc=document.createElement('p'),footer=document.createElement('span');icon.className='augment-icon icon-'+(n+1);icon.setAttribute('aria-hidden','true');tier.textContent=tiers[a.tier]+' 증강 / 0'+(n+1);title.textContent=data?.name||'불러오는 중';desc.textContent=data?.description||'목록을 불러오지 못하면 새로고침해 주세요.';footer.className='augment-card-action';footer.textContent=id===pick?'선택 완료':pick?'선택 종료':'이 증강 선택';b.append(icon,tier,title,desc,footer);
+    b.onclick=()=>{if(!send({type:'augment',id}))error('서버에 다시 연결하는 중입니다.');else{for(const card of $('augmentCards').querySelectorAll('button'))card.disabled=true}};$('augmentCards').append(b);
+   }}return true;
+  }
   if(ending){
    const r=s.result,done=r.elapsed>=r.duration,win=r.winner===auth.slot;
    $('overlay').hidden=!done;
@@ -43,7 +68,7 @@
   if(waiting){
    $('overlay').hidden=false;$('overTag').textContent='DUEL LOUNGE';$('overTitle').textContent='대전 대기실';$('overDesc').textContent='준비를 마치면 코인 토스와 캐릭터 선택이 시작됩니다.';
    $('waitingCode').textContent='ROOM / '+s.code;
-   $('ruleSummary').textContent=(rule.bestOf===1?'단판':'Bo'+rule.bestOf)+' · HP '+rule.hp+' · 공격 ×'+rule.attack+' · 공속 ×'+rule.attackSpeed+' · 보구 연출 '+(rule.skipCinema?'스킵':'재생');
+   $('ruleSummary').textContent=(rule.bestOf===1?'단판':'Bo'+rule.bestOf)+' · HP '+rule.hp+' · 공격 ×'+rule.attack+' · 공속 ×'+rule.attackSpeed+' · 보구 연출 '+(rule.skipCinema?'스킵':'재생')+' · 보구 이전 '+(rule.carryNP?'ON':'OFF')+' · 체력 이전 '+(rule.carryHP?'ON':'OFF')+' · 영주 초기화 '+(rule.resetSeals?'ON':'OFF')+' · 증강 '+(rule.augmentMode?'ON':'OFF');
    $('waitingHint').textContent=s.players.length<2?'초대 링크를 보내 상대를 초대하세요.':'두 플레이어 모두 준비하면 시작합니다.';
    const key=JSON.stringify([s.code,s.players.map(p=>[p.char,p.ready,p.bot]),auth.slot,s.host]);
    if(key!==lastSeats){lastSeats=key;$('waitingSeats').replaceChildren();for(let i=0;i<2;i++){

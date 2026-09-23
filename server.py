@@ -1,5 +1,6 @@
 """Grail Duel online. Python 3.10+ and aiohttp."""
 import json, math, os, random, secrets, threading, time
+import augments as aug
 from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 from pathlib import Path
 
@@ -85,7 +86,7 @@ def bot_input(r,p,enemy,dt,rng=None):
  memory['hold']=[k for k in keys if k in ('left','right','guard')]
  return keys
 
-DEFAULT_SETTINGS=dict(skipCinema=False,bestOf=3,hp=100,attack=1.0,attackSpeed=1.0)
+DEFAULT_SETTINGS=dict(skipCinema=False,bestOf=3,hp=100,attack=1.0,attackSpeed=1.0,carryNP=False,carryHP=False,resetSeals=False,augmentMode=False)
 def settings(r):return {**DEFAULT_SETTINGS,**r.get('settings',{})}
 def validate_settings(data):
  if not isinstance(data,dict) or set(data)-set(DEFAULT_SETTINGS):raise ValueError('잘못된 방 설정입니다.')
@@ -94,11 +95,14 @@ def validate_settings(data):
  for key,low,high in [('hp',50,500),('attack',.5,2),('attackSpeed',.5,2)]:
   v=result[key]
   if type(v) not in (int,float) or not math.isfinite(v) or not low<=v<=high:raise ValueError('능력치 설정 범위를 확인하세요.')
+ for key in ('carryNP','carryHP','resetSeals','augmentMode'):
+  if type(result[key]) is not bool:raise ValueError('라운드 규칙은 켜기/끄기로 설정하세요.')
+ if result['augmentMode'] and result['bestOf']==1:raise ValueError('증강 모드는 Bo3 또는 Bo5에서만 사용할 수 있습니다.')
  if int(result['hp'])!=result['hp']:raise ValueError('체력은 정수로 입력하세요.')
  return result
 
 def character_catalog():
- return {'characters':{k:{**v,**COMBAT[k], 'hp':100,'mana':100,'manaRegen':11,'heavyDamage':v['damage']*1.7,'heavyCost':12,'heavyReach':v['reach']+30,'skillWindup':{'saber':.24,'archer':.9,'lancer':.3,'gil':0,'iskandar':.32,'medusa':.25,'berserker':.48}[k],'skillVelocity':{'saber':820,'archer':1150,'lancer':1000,'gil':670,'iskandar':560,'medusa':950,'berserker':0}[k],'skillHits':3 if k=='gil' else 1,'npHits':0 if k=='berserker' else 12 if k=='gil' else 1,'npEffect':'체력 12% 회복 · 6초간 피해 35% 감소 · 효과 중 치명타를 받으면 체력 20%로 재기(라운드당 1회)' if k=='berserker' else '공격형 보구','npDuration':NP_TITLE_DURATION+NP_DURATION[k],'dashCost':18,'dashDistance':145,'dashInv':.17,'dashCooldown':.25,'guardReduction':82,'guardCost':6,'sealCount':3,'sealHeal':28} for k,v in CHARS.items()}}
+ return {'augments':aug.catalog(),'characters':{k:{**v,**COMBAT[k], 'hp':100,'mana':100,'manaRegen':11,'heavyDamage':v['damage']*1.7,'heavyCost':12,'heavyReach':v['reach']+30,'skillWindup':{'saber':.24,'archer':.9,'lancer':.3,'gil':0,'iskandar':.32,'medusa':.25,'berserker':.48}[k],'skillVelocity':{'saber':820,'archer':1150,'lancer':1000,'gil':670,'iskandar':560,'medusa':950,'berserker':0}[k],'skillHits':3 if k=='gil' else 1,'npHits':0 if k=='berserker' else 12 if k=='gil' else 1,'npEffect':'체력 12% 회복 · 6초간 피해 35% 감소 · 효과 중 치명타를 받으면 체력 20%로 재기(라운드당 1회)' if k=='berserker' else '공격형 보구','npDuration':NP_TITLE_DURATION+NP_DURATION[k],'dashCost':18,'dashDistance':145,'dashInv':.17,'dashCooldown':.25,'guardReduction':82,'guardCost':6,'sealCount':3,'sealHeal':28} for k,v in CHARS.items()}}
 
 def begin_draft(r):
  first=secrets.randbelow(2)
@@ -111,17 +115,29 @@ def lock_pick(r,slot,char):
  if char not in CHARS or char in d['picks']:raise ValueError('선택할 수 없는 캐릭터입니다.')
  d['picks'][slot]=char;r['players'][slot]['char']=char
  if d['turn']==0:d.update(turn=1,remaining=20.0)
- else:setup(r)
+ else:start_round(r)
 
 def player(char, bot=False):
  return dict(token=secrets.token_urlsafe(24),char=char,bot=bot,ready=bot,last=time.monotonic(),keys=[],prev=[],queued=[],x=0,y=0,vy=0,hp=100,maxHp=100,attackSpeed=1.0,mana=100,np=0,seals=3,cool=0,stun=0,inv=0,dashInv=0,action='idle',anim=0,animMax=0,moving=False,face=1)
 
+def start_round(r):
+ r.pop('result',None)
+ if settings(r)['augmentMode'] and not r.get('training'):aug.begin(r)
+ else:setup(r)
+
 def setup(r):
- r.pop('cinematic',None);r.pop('result',None)
+ r.pop('cinematic',None);r.pop('result',None);r.pop('augmentation',None)
  rule=settings(r)
  for i,p in enumerate(r['players']):
   p.pop('_ai',None);p.pop('rematch',None)
-  p.update(x=340+i*600,y=0,vy=0,hp=rule['hp'],maxHp=rule['hp'],godTime=0,godReady=False,reviveUsed=False,attackSpeed=rule['attackSpeed'],mana=100,np=0,cool=0,stun=0,inv=0,dashInv=0,action='idle',anim=0,animMax=0,moving=False,keys=[],prev=[],queued=[],face=1 if i==0 else -1)
+  m=aug.rebuild(p);maximum=round(rule['hp']*(1+min(1.5,m.get('hp',0))),2)
+  carry=r['round']>1
+  old_hp=p['hp'];old_max=p.get('maxHp',rule['hp']);old_np=p['np']
+  current=min(maximum,old_hp+max(0,maximum-old_max)) if carry and rule['carryHP'] and old_hp>0 else maximum
+  np=min(100,(old_np if carry and rule['carryNP'] else 0)+m.get('startNP',0))
+  if rule['resetSeals']:p['seals']=3
+  p.update(shield=maximum*m.get('shield',0),augRevived=False,comboHits=0,guardHealCD=0,dashShieldCD=0,dashStrikeCD=0,comboCD=0,skillHealCD=0,slowTime=0,slow=0,hasteTime=0,haste=0)
+  p.update(x=340+i*600,y=0,vy=0,hp=current,maxHp=maximum,godTime=0,godReady=False,reviveUsed=False,attackSpeed=rule['attackSpeed']*min(2.5,1+m.get('rate',0)),mana=100,np=np,cool=0,stun=0,inv=0,dashInv=0,action='idle',anim=0,animMax=0,moving=False,keys=[],prev=[],queued=[],face=1 if i==0 else -1)
  r.update(phase='countdown',delay=2.5,clock=90,shots=[],fx=[],banner='ROUND '+str(r['round']))
  if r.get('training'):
   for p in r['players']:p.update(np=100,mana=100)
@@ -138,21 +154,41 @@ def public_rooms():
   rooms.append(dict(code=r['code'],host=ps[0]['char'],players=len(ps),capacity=2,phase=r['phase'],joinable=joinable))
  return {'rooms':sorted(rooms,key=lambda r:(not r['joinable'],r['code']))}
 
-def hit(r,a,b,damage,knock=35,ultimate=False):
+def hit(r,a,b,damage,knock=35,ultimate=False,skill=False,proc=False):
  if b['inv']>0 or (b.get('dashInv',0)>0 and not ultimate):return False
- blocked='guard' in b['keys'] and b['y']==0 and b['stun']<=0 and b['cool']<=0 and b['mana']>=6
- if blocked:b['mana']-=6
- damage*=settings(r)['attack']
- actual=damage*(.18 if blocked else 1)*(.65 if b.get('godTime',0)>0 else 1)
+ guard_cost=max(1,6-aug.value(b,'guardCost'))
+ blocked='guard' in b['keys'] and b['y']==0 and b['stun']<=0 and b['cool']<=0 and b['mana']>=guard_cost
+ if blocked:b['mana']-=guard_cost
+ multiplier=1+aug.value(a,'attack')
+ if b['hp']<=b.get('maxHp',100)*.35:multiplier+=aug.value(a,'execute')
+ if a['hp']<=a.get('maxHp',100)*.35:multiplier+=aug.value(a,'comeback')
+ damage*=settings(r)['attack']*min(3,multiplier)*(1+min(1.5,aug.value(a,'skillDamage')) if skill else 1)
+ armor=min(.6,aug.value(b,'armor'))
+ actual=damage*(.18 if blocked else 1)*(.65 if b.get('godTime',0)>0 else 1)*(1-armor)
+ if b['hp']<=b.get('maxHp',100)*.35:actual*=1-min(.6,aug.value(b,'lastArmor'))
+ absorbed=min(b.get('shield',0),actual);b['shield']=max(0,b.get('shield',0)-absorbed);actual-=absorbed
+ lost=min(b['hp'],actual)
  if b.get('dummy'):b['damageTaken']=round(b.get('damageTaken',0)+actual,2);b['lastDamage']=round(actual,2)
  else:
   b['hp']=max(0,b['hp']-actual)
   if b['hp']==0 and b.get('godTime',0)>0 and b.get('godReady') and not b.get('reviveUsed'):
    b.update(hp=b.get('maxHp',100)*.2,godReady=False,reviveUsed=True,inv=.6)
    r['fx'].append(dict(x=b['x'],y=120,life=.7,color='#e6b87c',kind='rebirth'))
- b['stun']=.08 if blocked else .21
+  elif b['hp']==0 and aug.value(b,'revive') and not b.get('augRevived'):
+   b.update(hp=b['maxHp']*aug.value(b,'revive'),augRevived=True,inv=.6)
+   r['fx'].append(dict(x=b['x'],y=120,life=.7,color='#cdb7ff',kind='rebirth'))
+ b['stun']=(.08 if blocked else .21)*(1-min(.6,aug.value(b,'tenacity')))
  if not b.get('dummy'):b['x']=max(55,min(1225,b['x']+a['face']*knock))
- a['np']=min(100,a['np']+damage*.65);b['np']=min(100,b['np']+damage*.5)
+ if not proc:
+  a['np']=min(100,a['np']+damage*.65*(1+min(2,aug.value(a,'npGain'))));b['np']=min(100,b['np']+damage*.5*(1+min(2,aug.value(b,'npGain'))))
+  aug.heal(a,lost*min(.5,aug.value(a,'lifesteal')))
+  if blocked and aug.value(b,'guardHeal') and b.get('guardHealCD',0)<=0:aug.heal(b,b['maxHp']*aug.value(b,'guardHeal'));b['guardHealCD']=2
+  if skill and aug.value(a,'slow'):b.update(slow=min(.5,aug.value(a,'slow')),slowTime=1.5)
+  if aug.value(a,'comboCount') and a.get('comboCD',0)<=0:
+   a['comboCD']=.25;a['comboHits']=a.get('comboHits',0)+1
+   if a['comboHits']>=aug.value(a,'comboCount'):
+    a['comboHits']=0
+    if b['hp']>0:hit(r,a,b,a['maxHp']*aug.value(a,'comboDamage'),0,ultimate=ultimate,proc=True)
  r['fx'].append(dict(x=b['x'],y=b['y']+120,life=.25,color='#ffffff' if blocked else CHARS[a['char']]['color']))
  return True
 
@@ -192,6 +228,12 @@ def tick(r,dt,now):
   return
  if r.get('result') and r['phase'] in ('between','ended'):
   result=r['result'];result['elapsed']=min(result['duration'],result['elapsed']+dt)
+ if r['phase']=='augment':
+  a=r['augmentation'];a['remaining']=max(0,a['remaining']-dt)
+  for i,p in enumerate(ps):
+   if a['picks'][i] is None and (p['bot'] or a['remaining']==0):
+    if aug.choose(r,i,random.choice(a['offers'][i])):setup(r);break
+  return
  if r['phase']=='coin':
   r['delay']=max(0,r['delay']-dt)
   if r['delay']==0:r.update(phase='draft',banner='서번트 선택')
@@ -205,7 +247,7 @@ def tick(r,dt,now):
  if r['phase'] in ('countdown','between'):
   r['delay']-=dt
   if r['delay']<=0:
-   if r['phase']=='between':r['round']+=1;setup(r)
+   if r['phase']=='between':r['round']+=1;start_round(r)
    else:r.update(phase='fight',banner='FIGHT')
   return
  if r['phase']!='fight':return
@@ -218,7 +260,13 @@ def tick(r,dt,now):
  if not r.get('training'):r['clock']=max(0,r['clock']-dt)
  r['fx']=[dict(f,life=f['life']-dt) for f in r['fx'] if f['life']>dt]
  for i,p in enumerate(ps):
-  enemy=ps[1-i];ch=CHARS[p['char']];combat=dict(COMBAT[p['char']]);rate=settings(r)['attackSpeed']
+  enemy=ps[1-i];ch=dict(CHARS[p['char']]);combat=dict(COMBAT[p['char']]);aug.tick(p,dt)
+  rate=settings(r)['attackSpeed']*min(2.5,1+aug.value(p,'rate')+(p.get('haste',0) if p.get('hasteTime',0)>0 else 0));p['attackSpeed']=rate
+  ch['speed']*=max(.5,min(1.7,1+aug.value(p,'speed')))*(1-p.get('slow',0) if p.get('slowTime',0)>0 else 1)
+  ch['reach']+=min(100,aug.value(p,'reach'))
+  mode=aug.value(p,'skillMode')
+  if mode:combat['skill_cost'],combat['skill_cool']=aug.SKILLS[mode][:2]
+  combat['skill_cost']*=max(.25,1-aug.value(p,'skillCost'))
   for key in ('light','heavy','skill_cool'):combat[key]/=rate
   if p.get('dummy'):
    p.update(keys=[],queued=[],prev=[],stun=max(0,p['stun']-dt),action='idle',anim=0,moving=False)
@@ -231,30 +279,32 @@ def tick(r,dt,now):
   p['face']=beam['face'] if beam else (1 if enemy['x']>=p['x'] else -1)
   for k in ('cool','stun','inv','dashInv','anim','godTime'):p[k]=max(0,p.get(k,0)-dt)
   if p.get('godTime',0)<=0:p['godReady']=False
-  p['mana']=min(100,p['mana']+dt*11)
+  p['mana']=min(100,p['mana']+dt*(11+aug.value(p,'manaRegen')))
   if p['anim']==0:p['action']='guard' if 'guard' in ks else 'idle'
   p['vy']-=1600*dt;p['y']=max(0,p['y']+p['vy']*dt)
   if p['y']==0:p['vy']=0
   if p['stun']>0:continue
   if 'seal' in pressed and p['seals']>0:
-   p['seals']-=1;p['hp']=min(p.get('maxHp',100),p['hp']+p.get('maxHp',100)*.28);p['mana']=100;p['inv']=.6
+   p['seals']-=1;aug.seal(r,i,hit)
   if p['cool']>0:continue
-  if 'jump' in pressed and p['y']==0:p['vy']=650
+  if 'jump' in pressed and p['y']==0:p['vy']=650*(1+min(.3,aug.value(p,'jump')))
   moving=('right' in ks)-('left' in ks)
   old_x=p['x']
   if 'guard' not in ks:p['x']=max(55,min(1225,p['x']+moving*ch['speed']*dt))
   p['moving']=p['x']!=old_x and p['y']==0 and p['vy']==0
   if p['moving'] and p['anim']==0:p['action']='run'
-  if 'dash' in pressed and p['mana']>=18:
-   p['mana']-=18;p['x']=max(55,min(1225,p['x']+(moving or p['face'])*145));p['dashInv']=.17;p['cool']=.25;p['action']='dash';p['anim']=p['animMax']=.25
+  if 'dash' in pressed and p['mana']>=max(4,18-aug.value(p,'dashCost')):
+   p['mana']-=max(4,18-aug.value(p,'dashCost'));p['x']=max(55,min(1225,p['x']+(moving or p['face'])*(145+min(100,aug.value(p,'dashDistance')))));p['dashInv']=.17;p['cool']=.25;p['action']='dash';p['anim']=p['animMax']=.25
+   aug.dash(r,i,hit)
   elif 'np' in pressed and p['np']>=100:
-   p['np']=0;p['moving']=False;p['action']='np';p['anim']=p['animMax']=NP_TITLE_DURATION+NP_DURATION[p['char']];p['cool']=p['anim']
+   p['np']=min(80,aug.value(p,'npRefund'));p['moving']=False;p['action']='np';p['anim']=p['animMax']=NP_TITLE_DURATION+NP_DURATION[p['char']];p['cool']=p['anim']
    r['cinematic']=dict(owner=i,char=p['char'],face=p['face'],elapsed=0,titleDuration=NP_TITLE_DURATION,duration=p['anim'],playbackRate=NP_SOURCE_DURATION[p['char']]/NP_DURATION[p['char']])
    if settings(r)['skipCinema']:release_np(r,r['cinematic'])
    for other in ps:other.update(queued=[],prev=list(other['keys']))
    return
   elif 'skill' in pressed and p['mana']>=combat['skill_cost']:
    p['mana']-=combat['skill_cost'];p['cool']=combat['skill_cool'];p['anim']=p['animMax']=.5/rate;p['action']='skill'
+   if aug.skill(r,i,rate):continue
    if p['char']=='berserker':
     p.update(action='axe_slam',anim=combat['skill_cool'],animMax=combat['skill_cool'],moving=False)
     r['shots'].append(dict(x=p['x'],y=p['y'],v=0,face=p['face'],owner=i,damage=combat['skill_damage'],life=.30,kind='axe_slam',delay=.48/rate,hit=False,elapsed=0))
@@ -280,7 +330,7 @@ def tick(r,dt,now):
    heavy='heavy' in pressed and p['mana']>=12
    if heavy:p['mana']-=12
    p['cool']=combat['heavy'] if heavy else combat['light'];p['anim']=p['animMax']=p['cool'];p['action']='heavy' if heavy else 'light'
-   if abs(enemy['x']-p['x'])<ch['reach']+(30 if heavy else 0) and abs(enemy['y']-p['y'])<85:hit(r,p,enemy,ch['damage']*(1.7 if heavy else 1),60 if heavy else 25)
+   if abs(enemy['x']-p['x'])<ch['reach']+(30 if heavy else 0) and abs(enemy['y']-p['y'])<85:hit(r,p,enemy,ch['damage']*(1.7*(1+aug.value(p,'heavyDamage')) if heavy else 1),60 if heavy else 25)
   if p['action']!='run':p['moving']=False
  # Prevent overlapping grounded fighters.
  a,b=ps
@@ -289,6 +339,17 @@ def tick(r,dt,now):
   mid=max(88,min(1192,mid));a['x']=mid-d*33;b['x']=mid+d*33
  shots=[]
  for s in r['shots']:
+  if s['kind'] in ('aug_orb','aug_nova'):
+   a=ps[s['owner']];b=ps[1-s['owner']]
+   flight=max(0,dt-s['delay']);s['delay']=max(0,s['delay']-dt)
+   if flight<=0:shots.append(s);continue
+   old=s['x'];s['x']+=s['v']*flight;s['life']-=flight
+   if s['kind']=='aug_nova':
+    r['fx'].append(dict(kind='aug_ring',x=a['x'],y=a['y']+120,life=.45,radius=s['radius'],color='#c3adff'))
+    if abs(b['x']-a['x'])<=s['radius'] and abs(b['y']-a['y'])<150:hit(r,a,b,s['damage'],45,skill=True)
+   elif min(old,s['x'])-s['radius']-27<=b['x']<=max(old,s['x'])+s['radius']+27 and abs(s['y']-(b['y']+120))<s['radius']+45:hit(r,a,b,s['damage'],30,skill=True)
+   elif s['life']>0 and -150<s['x']<1430:shots.append(s)
+   continue
   if s['kind']=='axe_slam':
    a=ps[s['owner']];b=ps[1-s['owner']]
    if s['delay']>0 and a['stun']>0:
@@ -297,7 +358,7 @@ def tick(r,dt,now):
    if active<=0:shots.append(s);continue
    if not s['hit']:
     s['hit']=True
-    if -27<=(b['x']-a['x'])*s['face']<=245 and abs(b['y']-a['y'])<100:hit(r,a,b,s['damage'],65)
+    if -27<=(b['x']-a['x'])*s['face']<=245 and abs(b['y']-a['y'])<100:hit(r,a,b,s['damage'],65,skill=True)
     r['fx'].append(dict(x=a['x']+s['face']*185,y=a['y'],life=.35,color='#e6b87c',kind='greatimpact'))
    s['elapsed']+=active;s['life']-=active
    if s['life']>0:shots.append(s)
@@ -311,7 +372,7 @@ def tick(r,dt,now):
    old=s['x'];s['x']+=s['v']*flight;s['life']-=flight;s['elapsed']+=flight
    if not chain:a['x']=max(55,min(1225,s['x']));a['y']=0;a['vy']=0
    if not s['hit'] and min(old,s['x'])-s['radius']-27<=b['x']<=max(old,s['x'])+s['radius']+27 and abs(s['y']-(b['y']+120))<s['radius']+45:
-    s['hit']=hit(r,a,b,s['damage'],80 if ultimate else 40,ultimate=ultimate)
+    s['hit']=hit(r,a,b,s['damage'],80 if ultimate else 40,ultimate=ultimate,skill=not ultimate)
     if chain:s['life']=0
    if s['life']>1e-9:shots.append(s)
    continue
@@ -325,7 +386,7 @@ def tick(r,dt,now):
    if flight<=0:shots.append(s);continue
    old=s['x'];s['x']+=s['v']*flight;s['life']-=flight
    if min(old,s['x'])-s['radius']-27<=b['x']<=max(old,s['x'])+s['radius']+27 and abs(s['y']-(b['y']+120))<s['radius']+45:
-    hit(r,a,b,s['damage'],75)
+    hit(r,a,b,s['damage'],75,skill=True)
     r['fx'].append(dict(x=b['x'],y=s['y'],life=.45,color='#ffb578',kind='caladburst'))
    elif s['life']>0 and -150<s['x']<1430:shots.append(s)
    continue
@@ -370,14 +431,14 @@ def tick(r,dt,now):
    if flight<=0:shots.append(s);continue
    old=s['x'];s['x']+=s['v']*flight;s['life']-=flight
    if min(old,s['x'])-s['radius']-27<=b['x']<=max(old,s['x'])+s['radius']+27 and abs(s['y']-(b['y']+120))<s['radius']+45:
-    hit(r,a,b,s['damage'],55 if s['kind']=='strike_air' else 45)
+    hit(r,a,b,s['damage'],55 if s['kind']=='strike_air' else 45,skill=True)
    elif s['life']>0 and -220<s['x']<1500:shots.append(s)
    continue
   s['delay']-=dt
   if s['delay']>0:shots.append(s);continue
   s['x']+=s['v']*dt;s['life']-=dt;b=ps[1-s['owner']]
   if abs(s['x']-b['x'])<s['radius']+27 and abs(s['y']-(b['y']+120))<s['radius']+45:
-   hit(r,ps[s['owner']],b,s['damage'],65,ultimate=s['kind']=='np')
+   hit(r,ps[s['owner']],b,s['damage'],65,ultimate=s['kind']=='np',skill=s['kind']!='np')
   elif s['life']>0 and -100<s['x']<1380:shots.append(s)
  r['shots']=shots
  if any(p['hp']<=0 for p in ps) or r['clock']<=0:
@@ -463,12 +524,17 @@ class Handler(BaseHTTPRequestHandler):
   if action=='/api/settings':
    if r['players'].index(p)!=r.get('host',0):raise ValueError('방장만 설정을 변경할 수 있습니다.')
    if r['phase']!='waiting' or r.get('closed'):raise ValueError('대기 중에만 변경할 수 있습니다.')
-   r['settings']=validate_settings(d.get('settings'))
+   proposed=validate_settings(d.get('settings'))
+   if r.get('training') and proposed['augmentMode']:raise ValueError('증강 모드는 AI 대전 또는 온라인 대전에서 사용하세요.')
+   r['settings']=proposed
    for q in r['players']:q['ready']=q['bot']
    return snapshot(r)
   if action=='/api/pick':
    if r.get('closed'):raise ValueError('종료된 방입니다.')
    lock_pick(r,r['players'].index(p),d.get('char'));return snapshot(r)
+  if action=='/api/augment':
+   if aug.choose(r,r['players'].index(p),d.get('id')):setup(r)
+   return snapshot(r)
   if action=='/api/rematch':
    result=r.get('result')
    if r.get('closed') or r.get('paused') or r['phase']!='ended' or not result or result['elapsed']<result['duration']:raise ValueError('최종 결과 연출이 끝난 뒤 재대결을 신청하세요.')
@@ -476,7 +542,7 @@ class Handler(BaseHTTPRequestHandler):
    if all(q.get('rematch') for q in r['players']):
     r.update(phase='waiting',score=[0,0],round=1,winner=None,banner='재대결 준비',shots=[],fx=[])
     r.pop('result',None);r.pop('draft',None)
-    for q in r['players']:q.update(ready=q['bot'],rematch=False,keys=[],prev=[],queued=[],action='idle',anim=0)
+    for q in r['players']:q.update(ready=q['bot'],rematch=False,keys=[],prev=[],queued=[],action='idle',anim=0,augments=[],augStats={})
    return snapshot(r)
   if action=='/api/ready' and r['phase']!='waiting':raise ValueError('대기실에서 준비해 주세요.')
   if action=='/api/ready' and r.get('closed'):raise ValueError('로비에서 새 방을 만들어 주세요.')
@@ -484,7 +550,7 @@ class Handler(BaseHTTPRequestHandler):
    p['ready']=True
    if len(r['players'])==2 and all(p['ready'] and (p['bot'] or time.monotonic()-p['last']<1.5) for p in r['players']):
     r.update(score=[0,0],round=1)
-    for q in r['players']:q['seals']=3
+    for q in r['players']:q.update(seals=3,augments=[],augStats={})
     if r.get('training'):setup(r)
     else:begin_draft(r)
   elif action=='/api/input':

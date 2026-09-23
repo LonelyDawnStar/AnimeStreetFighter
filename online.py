@@ -45,7 +45,7 @@ async def catalog(request):return web.json_response(game.character_catalog())
 async def rooms(request):
  with game.LOCK:return web.json_response(game.public_rooms())
 
-async def health(request):return web.json_response({'status':'ok','version':'0.34'})
+async def health(request):return web.json_response({'status':'ok','version':'0.36'})
 
 async def websocket(request):
  ws=web.WebSocketResponse(heartbeat=10,max_msg_size=4096)
@@ -86,8 +86,8 @@ async def websocket(request):
    kind=d.get('type')
    if kind=='input':invoke('input',{**auth,'keys':d.get('keys',[])})
    elif kind=='ready':invoke('ready',auth)
-   elif kind in ('settings','pick','rematch'):
-    try:invoke(kind,{**auth,**({'settings':d.get('settings')} if kind=='settings' else {'char':d.get('char')} if kind=='pick' else {})})
+   elif kind in ('settings','pick','rematch','augment'):
+    try:invoke(kind,{**auth,**({'settings':d.get('settings')} if kind=='settings' else {'char':d.get('char')} if kind=='pick' else {'id':d.get('id')} if kind=='augment' else {})})
     except ValueError as e:await ws.send_json({'type':'notice','message':str(e)})
    elif kind=='ping':await ws.send_json({'type':'pong','stamp':d.get('stamp')})
    else:raise ValueError('알 수 없는 메시지입니다.')

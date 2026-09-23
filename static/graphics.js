@@ -230,7 +230,14 @@ const GrailArt=(()=>{
   g.restore();
  };
  art.effects=(g,s,t)=>{
+  for(const p of s.players){if(p.shield>0){const w=84*Math.min(1,p.shield/(p.maxHp||100));rect(g,p.x-42,535-p.y-280,84,6,'#243247');rect(g,p.x-42,535-p.y-280,w,6,'#b5c8ff')}}
+  for(const f of s.fx){if(f.kind==='aug_ring'){const y=535-f.y,q=1-f.life/.5,r=f.radius*Math.max(.1,q);for(let j=0;j<36;j++){const angle=j*Math.PI/18;rect(g,f.x+Math.round(Math.cos(angle)*r/4)*4,y+Math.round(Math.sin(angle)*r*.45/4)*4,8,8,f.color)}}}
   for(const sh of s.shots){const dir=Math.sign(sh.v),y=535-sh.y,x=sh.x;
+   if(sh.kind==='aug_orb'||sh.kind==='aug_nova'){
+    if(sh.delay>0){rect(g,x-10,y-10,20,20,'#baa9ff55');continue}
+    if(sh.kind==='aug_nova')continue;
+    const size=sh.radius>30?28:14;rect(g,x-size,y-size,size*2,size*2,'#8570cb');rect(g,x-size+4,y-size+4,size*2-8,size*2-8,'#d8d1ff');rect(g,x-4,y-size-4,8,size*2+8,'#fff5dc');for(let n=1;n<=4;n++)rect(g,x-dir*(size+n*12),y-4,8,8,'#b6a4ec');continue;
+   }
    if(sh.kind==='axe_slam'){
     if(sh.delay>0){const owner=s.players[sh.owner];rect(g,owner.x-42,535-owner.y-290,84,4,'#372322');rect(g,owner.x-42,535-owner.y-290,84*Math.max(0,1-sh.delay/(.48/(owner.attackSpeed||1))),4,'#f0bc80')}
     continue;
