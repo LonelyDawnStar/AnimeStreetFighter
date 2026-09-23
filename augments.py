@@ -80,7 +80,7 @@ def rebuild(p):
  return m
 
 def begin(r):
- tier=TIERS[min(r['round']-1,2)]
+ tier=random.choice(TIERS)
  offers=[]
  for p in r['players']:
   have=p.get('augments',[]);m=stats(p)
