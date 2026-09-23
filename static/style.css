@@ -4,3 +4,91 @@
 @media(min-width:521px){#roster{grid-template-columns:repeat(3,minmax(0,1fr))}}
 
 .ai-choice{grid-column:2;grid-row:1/3;display:grid;grid-template-columns:auto 1fr;align-items:center;gap:8px;padding:12px;border:1px solid #e6cb9244;border-radius:7px;background:#0b1422}.ai-choice label{font-size:11px;color:#e6cb92}.ai-choice select{width:100%;min-height:40px;background:#1a2535;color:#fff;border:1px solid #ffffff30;border-radius:4px;padding:6px}.ai-choice small{grid-column:1/-1;font-size:10px;color:#aab8cb;line-height:1.5}.ai-choice button{grid-column:1/-1}.actions .join{grid-column:1/-1;grid-row:3}@media(max-width:520px){.ai-choice{grid-column:1;grid-row:auto}.actions .join{grid-row:auto}}
+
+/* v0.35 — pixel frames, readable native text. No bitmap fonts or text filters. */
+:root{--text:#f1f4fa;--muted:#bcc9dc;--line:#3c506c;--pixel-edge:#607694;--pixel-shadow:#030812;--pixel-panel:#142238}
+body{font-family:Arial,'Malgun Gothic','Apple SD Gothic Neo',sans-serif;background-color:#09111f;background-image:linear-gradient(90deg,#13213944 2px,transparent 2px),linear-gradient(#13213944 2px,transparent 2px);background-size:32px 32px;color:var(--text)}
+body button,body input,body select,body summary{font-family:inherit;line-height:1.5}
+body button{border-radius:0;border:2px solid #6c829e;background:#20344e;color:#f2f5ff;box-shadow:inset 2px 2px #ffffff17,inset -2px -2px #0005,3px 3px 0 #030812;transition:none;font-size:14px}
+body button:hover:not(:disabled){background:#304b6a;border-color:#b3cae5;transform:translateY(-2px);box-shadow:inset 2px 2px #ffffff20,inset -2px -2px #0005,3px 5px 0 #030812}
+body button:active:not(:disabled){transform:translate(2px,2px);box-shadow:inset 2px 2px #0005}
+body button:disabled{opacity:.62;box-shadow:none;cursor:not-allowed}
+body button.primary{color:#182132;background:#ecd294;border-color:#fff0bf #9f7e42 #9f7e42 #fff0bf;box-shadow:inset 2px 2px #fff6,3px 3px #030812}
+body button.primary:hover:not(:disabled){background:#ffe3a3;border-color:#fff2c7}
+body :is(button,a,input,select,summary):focus-visible{outline:3px solid #9cf5df;outline-offset:4px}
+body :is(.intro,.card,.dossier,.connect,.room-browser,.full-stats,.arena,#roomSettings,#finalResult){border-radius:0;border:3px solid #607694;box-shadow:inset 0 0 0 2px #07101f,4px 4px 0 #030812}
+/* Hard, stepped corner inlays remain inside the frame, away from text. */
+body :is(.connect,.room-browser,.full-stats,.dossier,#roomSettings,#finalResult){background-color:#142238;background-image:linear-gradient(#e4c78b,#e4c78b),linear-gradient(#e4c78b,#e4c78b),linear-gradient(#e4c78b,#e4c78b),linear-gradient(#e4c78b,#e4c78b);background-repeat:no-repeat;background-size:12px 4px,4px 12px,12px 4px,4px 12px;background-position:4px 4px,4px 4px,calc(100% - 4px) calc(100% - 4px),calc(100% - 4px) calc(100% - 4px)}
+body header{border-bottom:4px solid #3c506c;background:#0d1829}
+body .brand{font-family:Arial,sans-serif;font-weight:900;letter-spacing:2px;text-shadow:2px 2px #000}
+body .topnav{background:#101c2e;border-bottom:3px solid #3c506c;gap:24px}
+body .topnav a{font-size:14px;font-weight:700;color:#becce0;border-bottom:4px solid transparent}
+body .topnav a.active{color:#ffe0a2;border-bottom:4px solid #e6cb92}
+body :is(#connection,.hero-tags span,.room-icon,.browser-heading h2 span,kbd,.ai-choice,.ai-choice select,.join input){border-radius:0;border-width:2px}
+body #connection{background:#143630;color:#a9f7df;border-color:#558a7d;font-size:11px;box-shadow:2px 2px #030812}
+body .intro{border-color:#a08857;background-image:linear-gradient(90deg,#0d1829f5 0 48%,#0d182988 48% 72%,#0d182944 72%),url('/assets/riverside.png');box-shadow:inset 0 0 0 4px #0b1423,5px 5px #030812}
+body .intro:after{background:linear-gradient(0deg,#09111fcc 0 12%,transparent 12%)}
+body .intro h1{letter-spacing:-1px;text-shadow:3px 3px #030812}
+body #grailSigil{filter:none;animation:pixel-float 3s steps(4,end) infinite}
+@keyframes pixel-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+body .hero-tags span{background:#111e31;color:#f1e2bd;font:600 12px Arial,sans-serif;border-color:#647491;box-shadow:2px 2px #030812}
+body .sectionline{border-left:6px solid #e6cb92;padding-left:12px}
+body .card{background:#17283e;border-color:#536c8b;box-shadow:inset 0 -6px #0b1423,3px 3px #030812}
+body .card:before{background:repeating-linear-gradient(0deg,transparent 0 30px,#b0cfff08 30px 32px)}
+body .card:hover:not(:disabled){background:#20354e;transform:translateY(-2px)}
+body .card.selected{border-color:#ffe1a0;box-shadow:inset 0 0 0 2px #8b713f,4px 4px #030812}
+body .card.selected:after{content:'선택';font:700 12px Arial,sans-serif;color:#152135;background:#ffe1a0;top:9px;right:9px;padding:3px 7px;box-shadow:2px 2px #030812}
+body .card .class{font-size:11px;letter-spacing:.5px;top:14px}
+body .card .info{border-top:2px solid #4c6482}
+body .card strong{font-size:17px;color:#f4f6fc}
+body .card small{font-size:12px;line-height:1.5;color:#c0cce0}
+body .dossier p,body .dossier .stats span{font-size:12px;line-height:1.5}
+body .showcase{background:repeating-linear-gradient(90deg,#192d45 0 30px,#14253a 30px 32px)}
+body .showcase:after{height:3px;background:#aa925e}
+body .connect p,body .browser-heading p,body .note{font-size:14px;color:#bfccdf}
+body .ai-choice{border-color:#7c704f;background:#0c192b;box-shadow:inset 2px 2px #0005}
+body .ai-choice label,body .ai-choice small{font-size:12px;color:#e6d9bd}
+body :is(input:not([type=checkbox]),select){border-radius:0;border:2px solid #7890ae;background:#0a1627;color:#f2f6ff;min-height:44px;font-size:14px;padding:8px 10px;box-shadow:inset 2px 2px #030812}
+body .join input{font-size:15px}
+body input[type=checkbox]{width:20px;height:20px;accent-color:#a4edd3;vertical-align:middle;flex-shrink:0}
+body .browser-toolbar{border-width:2px;background:#0a1627;font-size:13px;color:#c2cfe2}
+body .live-dot:before{width:8px;height:8px;border-radius:0;box-shadow:2px 2px #2a685b}
+body .room-row{border-bottom:2px solid #344b67}
+body .room-info h3{font-size:16px}body .room-info p{font-size:12px;color:#b9c8dd}
+body .room-status{font-size:13px;color:#c0cde0}body .room-status.open{color:#a4f2d7}
+body .room-icon{background:#1d324e;box-shadow:2px 2px #030812}
+body .room-join{background:#254d47;border-color:#86c9b5;color:#d0ffed}
+body #detailStats h3{font-size:15px;border-bottom:2px solid #61728b;padding-bottom:10px}
+body #detailStats dl{font-size:13px;gap:12px 10px;line-height:1.5}
+body #detailStats dt{color:#beccdf}body #detailStats dd{color:#f3f5fb}
+body .arena{border-color:#9d885d;box-shadow:4px 4px #030812}
+body #overlay:not(.final-overlay){background-color:#0e1b2e;background-image:linear-gradient(90deg,#8ba3c00a 2px,transparent 2px),linear-gradient(#8ba3c00a 2px,transparent 2px);background-size:24px 24px}
+body #overTitle{color:#ffe1a0;text-shadow:2px 2px #030812}
+body #overDesc{color:#c2cee0}
+body .waiting-seat{border-width:3px;background:#172a42;box-shadow:4px 4px #030812}
+body .waiting-seat.is-ready{border-color:#a2e7ce;background:#17332f}
+body .waiting-seat small{color:#c1cfe2;font-size:12px}
+body .waiting-seat span{font-size:14px;color:#c1cfe2}
+body .rule-summary{border:2px solid #77694f;background:#101c2c;color:#f0d8a4;font-size:13px}
+body #waitingHint{color:#c0cee0;font-size:13px}
+body #roomSettings{border-color:#ccb27b;background-color:#142238}
+body #roomSettings::backdrop{background:#030913dc;backdrop-filter:none}
+body #roomSettings .settings-grid label{font-size:14px;color:#d8e2f1}
+body #roomSettings .settings-grid input:not([type=checkbox]),body #roomSettings .settings-grid select{font-size:15px;border:2px solid #7890ae;border-radius:0;min-height:44px}
+body #roomSettings p{color:#c3d0e2;font-size:13px}
+body #saveSettings{font-size:14px;min-height:44px}
+body #settingsStatus{font-size:13px;color:#a3edd4}
+body .draft-card{background:#1a2e46;border:2px solid #657c98;border-top:4px solid var(--accent);box-shadow:3px 3px #030812}
+body .draft-card small{font-size:12px;color:#c2d1e5}
+body .draft-card:disabled{opacity:.65}
+body #tossCoin{border-radius:0;border:6px double #fff1bb;clip-path:polygon(20% 0,80% 0,80% 10%,90% 10%,90% 20%,100% 20%,100% 80%,90% 80%,90% 90%,80% 90%,80% 100%,20% 100%,20% 90%,10% 90%,10% 80%,0 80%,0 20%,10% 20%,10% 10%,20% 10%)}
+body #finalResult{border-color:#c9af76;background-color:#101e32}
+body #finalTitle{color:#ffe3a8}body #finalNames,body #rematchStatus{color:#c3d0e3;font-size:13px}
+body #error{border-radius:0;border:3px solid #e4a4b0;box-shadow:4px 4px #030812;background:#4b2333}
+body kbd{box-shadow:2px 2px #030812;font-size:12px}
+body .arcade-controls .attack-key{box-shadow:inset -4px -4px #0004,inset 4px 4px #fff3;transition:none}
+body .arcade-controls .attack-key:active{transform:translateY(2px)}
+body .controller-title{color:#efd59c}body .controller-hint{color:#bfccdf}
+@media(max-width:760px){body .topnav{gap:18px}body .topnav a{font-size:13px}body .card strong{font-size:15px}body .room-info h3{font-size:14px}body .room-info p{font-size:11px}body .room-status{font-size:12px}body .hero-tags span{font-size:11px}body .intro p{font-size:13px}}
+@media(max-height:520px) and (orientation:landscape){body .waiting-seat span{font-size:12px}body .waiting-seat small{font-size:11px}body #waitingHint,body .rule-summary{font-size:12px}body #roomSettings .settings-grid label{font-size:13px}body #roomSettings .settings-grid{gap:10px}body #finalNames{display:none}body #rematchStatus{font-size:11px}body .draft-card small{font-size:10px}body .draft-card strong{font-size:13px}body.touch-device #overDesc{font-size:12px}}
+@media(prefers-reduced-motion:reduce){body #grailSigil{animation:none}}
