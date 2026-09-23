@@ -1,7 +1,7 @@
 'use strict';
 const $=id=>document.getElementById(id),defs={saber:{name:'알트리아',cls:'SABER',color:'#79c9ff',body:'#274b9d',hair:'#f2d788',style:'균형 · 검술',desc:'L: 스트라이크 에어 · 바람 참격. 보구: 거대 마력 검을 휘두르는 엑스칼리버',np:'EXCALIBUR'},archer:{name:'에미야',cls:'ARCHER',color:'#ff7878',body:'#ae3544',hair:'#e6e8ed',style:'기동 · 투사체',desc:'L: 칼라드볼그 · 0.9초 충전 후 피해 28 · 마나 24. 충전 중 피격 시 취소. 보구: 무한의 검제',np:'UNLIMITED BLADE WORKS'},lancer:{name:'쿠 훌린',cls:'LANCER',color:'#65ede1',body:'#247297',hair:'#244877',style:'속도 · 긴 사거리',desc:'L: 투창 · 게이 볼그를 던져 견제. 보구: 게이 볼그',np:'GAE BOLG'},gil:{name:'길가메시',cls:'ARCHER',color:'#ffd477',body:'#c79b46',hair:'#f1d87e',style:'견제 · 연속 투사체',desc:'세 발의 투사체로 공간을 장악. 보구: 에누마 엘리시',np:'ENUMA ELISH'}};
 Object.assign(defs,{berserker:{name:'헤라클레스',cls:'BERSERKER',color:'#dc9464',style:'중량 · 재기',desc:'L: 부검 내려치기 · 준비 0.48초 / 피해 24. U: 갓 핸드 · 체력 12% 회복, 6초 피해 35% 감소, 효과 중 1회 재기(라운드당 1회). 원작 능력을 대전용으로 조정',np:'GOD HAND'},iskandar:{name:'이스칸다르',cls:'RIDER',color:'#e6aa62',style:'중량 · 돌격',desc:'L: 검을 앞세운 돌격 · 피해 22. 보구: 왕의 군세 · 군대와 함께 돌진',np:'IONIOI HETAIROI'},medusa:{name:'메두사',cls:'RIDER',color:'#bf99ec',style:'기동 · 사슬 견제',desc:'L: 사슬 단검 투척 · 피해 14. 보구: 벨레로폰 · 페가수스 돌진',np:'BELLEROPHON'}});
-Object.assign(defs,{gojo:{name:'고죠 사토루',cls:'JUJUTSU',color:'#9acfff',style:'술식 · 조건부 영역',desc:'L: 술식반전 혁 · 준비 0.32초 / 피해 18 / 마나 28. U: 허식 자 · 기본 고정 피해 36. HP 30% 이하: 영역전개 무량공처. 영역 이후 조준 고정, 행동불가 해제 뒤 0.7초 후 발사. 가드·점프·회피 가능. HP 조건과 자동 연계는 대전용 각색.',np:'HOLLOW PURPLE / UNLIMITED VOID'}});
+Object.assign(defs,{gojo:{name:'고죠 사토루',cls:'JUJUTSU',color:'#9acfff',style:'술식 · 원거리 압박',desc:'L: 술식반전 혁 · 준비 0.32초 / 피해 18 / 마나 28. U: 허식 자 · 창과 혁을 결합해 발사. 기본 고정 피해 36, 가드·보호막 적용. 연출 6.4초 이후 조준 고정과 0.6초 발사 준비. HP 조건 없이 사용, 점프·회피 가능. 전투 수치는 대전용 조정.',np:'HOLLOW PURPLE'}});
 let selected='saber',session=null,state=null,keys=new Set(),pending=new Set(),generation=0,lastHealth=null,smoothed=[],lastFrame=0;
 function polygon(c,pts,color){c.fillStyle=color;c.beginPath();pts.forEach(([x,y],i)=>i?c.lineTo(x,y):c.moveTo(x,y));c.closePath();c.fill()}
 function line(c,x,y,a,b,color,w){c.strokeStyle=color;c.lineWidth=w;c.lineCap='round';c.beginPath();c.moveTo(x,y);c.lineTo(a,b);c.stroke()}
@@ -124,7 +124,7 @@ const CrispHUD=(()=>{
  const set=(el,value)=>{if(el.textContent!==value)el.textContent=value};
  function update(s,slot){
   root.hidden=!s||!['fight','countdown'].includes(s.phase)||!!s.cinematic||!!s.paused||!!s.closed;if(root.hidden)return;
-  sides.forEach((v,i)=>{const p=s.players[i];v.side.hidden=!p;if(!p)return;v.side.classList.toggle('enemy',i!==slot);if(v.portraitChar!==p.char&&GrailArt.portraits[p.char]){const g=v.portrait.getContext('2d');g.imageSmoothingEnabled=false;g.clearRect(0,0,128,172);g.drawImage(GrailArt.portraits[p.char],0,0,128,172);v.portraitChar=p.char}set(v.name,'P'+(i+1)+' · '+defs[p.char].name);set(v.player,'P'+(i+1)+(i===slot?' · 나':' · 상대'));set(v.hp,Math.ceil(p.hp)+' / '+Math.ceil(p.maxHp||100)+' HP');const width=(Math.max(0,Math.min(1,p.hp/(p.maxHp||100)))*100).toFixed(1)+'%';if(v.fill.style.width!==width)v.fill.style.width=width;set(v.mana,'마나 '+Math.floor(p.mana));set(v.np,p.char==='gojo'?(p.hp<=(p.maxHp||100)*.3?'무량공처':'허식 자')+(p.np>=100?' [U]':' '+Math.floor(p.np)+'%'):p.np>=100?'보구 준비 [U]':'보구 '+Math.floor(p.np)+'%');v.np.classList.toggle('ready',p.np>=100);set(v.seals,'◆'.repeat(Math.max(0,p.seals))+'◇'.repeat(Math.max(0,3-p.seals)));v.seals.setAttribute('aria-label','남은 영주 '+p.seals+'개');v.seals.title='영주 [I] · '+p.seals+'개';v.mpFill.style.width=Math.max(0,Math.min(100,p.mana))+'%';v.npFill.style.width=Math.max(0,Math.min(100,p.np))+'%';v.npBar.classList.toggle('ready',p.np>=100);const status=[];if(p.shield>0)status.push('보호막 '+Math.ceil(p.shield));if(p.char==='berserker'&&p.godTime>0)status.push('갓 핸드 '+p.godTime.toFixed(1)+'초');set(v.buff,status.join(' · '));v.buff.hidden=!status.length});
+  sides.forEach((v,i)=>{const p=s.players[i];v.side.hidden=!p;if(!p)return;v.side.classList.toggle('enemy',i!==slot);if(v.portraitChar!==p.char&&GrailArt.portraits[p.char]){const g=v.portrait.getContext('2d');g.imageSmoothingEnabled=false;g.clearRect(0,0,128,172);g.drawImage(GrailArt.portraits[p.char],0,0,128,172);v.portraitChar=p.char}set(v.name,'P'+(i+1)+' · '+defs[p.char].name);set(v.player,'P'+(i+1)+(i===slot?' · 나':' · 상대'));set(v.hp,Math.ceil(p.hp)+' / '+Math.ceil(p.maxHp||100)+' HP');const width=(Math.max(0,Math.min(1,p.hp/(p.maxHp||100)))*100).toFixed(1)+'%';if(v.fill.style.width!==width)v.fill.style.width=width;set(v.mana,'마나 '+Math.floor(p.mana));set(v.np,p.char==='gojo'?'허식 자'+(p.np>=100?' [U]':' '+Math.floor(p.np)+'%'):p.np>=100?'보구 준비 [U]':'보구 '+Math.floor(p.np)+'%');v.np.classList.toggle('ready',p.np>=100);set(v.seals,'◆'.repeat(Math.max(0,p.seals))+'◇'.repeat(Math.max(0,3-p.seals)));v.seals.setAttribute('aria-label','남은 영주 '+p.seals+'개');v.seals.title='영주 [I] · '+p.seals+'개';v.mpFill.style.width=Math.max(0,Math.min(100,p.mana))+'%';v.npFill.style.width=Math.max(0,Math.min(100,p.np))+'%';v.npBar.classList.toggle('ready',p.np>=100);const status=[];if(p.shield>0)status.push('보호막 '+Math.ceil(p.shield));if(p.char==='berserker'&&p.godTime>0)status.push('갓 핸드 '+p.godTime.toFixed(1)+'초');set(v.buff,status.join(' · '));v.buff.hidden=!status.length});
   set(round,'R '+(s.round||1));set(clock,s.training?'∞':String(Math.ceil(s.clock)));set(score,(s.score||[0,0]).join(' : '));training.hidden=!s.training;if(s.training){const d=s.players.find(p=>p.dummy),fmt=n=>Number(n||0).toFixed(1);set(training,'연습  |  누적 피해 '+fmt(d?.damageTaken)+'  |  최근 피해 '+fmt(d?.lastDamage))}
  }
  return {update};
@@ -138,11 +138,11 @@ function draw(now){CrispHUD.update(state,session?.slot);const dt=Math.min(.05,(n
  if(GrailArt.ready&&now-previousRoster>140&&!state){drawRoster(realTime);previousRoster=now}
  if(state&&GrailArt.ready){const s=state,t=visualTime;c.setTransform(.5,0,0,.5,0,0);c.imageSmoothingEnabled=false;
   c.save();if(now<impactUntil&&!s.paused)c.translate(Math.round(Math.sin(now*1.7)*4)*2,0);
-  GrailArt.background(c,t);if(state?.domain)GojoArt.background(c,state.domain.elapsed);
+  GrailArt.background(c,t);
   s.players.forEach((p,i)=>{const old=smoothed[i]||{x:p.x,y:p.y},a=1-Math.exp(-25*dt);old.x+=(p.x-old.x)*a;old.y=p.y<=0?0:old.y+(p.y-old.y)*a;smoothed[i]=old;fighter(c,{...p,...old,airborne:p.y>0||p.vy>0},t)});
   GrailArt.effects(c,s,t);GojoArt.effects(c,s,t);c.restore();
   if(s.phase==='countdown'){c.fillStyle='#06112e9a';c.fillRect(0,235,1280,100);text(s.phase==='countdown'?String(Math.ceil(s.delay)):s.banner,640,292,54,'#fff1c3','center');text(s.phase==='countdown'?'ROUND '+s.round:'',640,327,15,'#e6e7ef','center')}
-  text(s.domain?'U N L I M I T E D  V O I D':'F U Y U K I  /  M O O N L I T  R I V E R S I D E',640,641,10,'#d3d9ef','center');
+  text('F U Y U K I  /  M O O N L I T  R I V E R S I D E',640,641,10,'#d3d9ef','center');
   NobleCinema.draw(c,s);ResultCinema.draw(c,s,session.slot);view.imageSmoothingEnabled=false;view.clearRect(0,0,1280,660);view.drawImage(buffer,0,0,1280,660);
  }
  requestAnimationFrame(draw)
@@ -178,6 +178,7 @@ async function refreshRooms(){
 }
 $('refreshRooms').onclick=refreshRooms;$('onlyOpen').onchange=renderRooms;
 refreshRooms();
+
 
 
 

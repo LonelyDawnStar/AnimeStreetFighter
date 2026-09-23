@@ -21,7 +21,7 @@ KEYS={'left','right','jump','guard','light','heavy','skill','dash','np','seal'}
 TREASURY=('longsword','spear','axe','greatsword','halberd','sickle')
 NP_TITLE_DURATION=1.0
 NP_MAX_DURATION=9.0
-NP_SOURCE_DURATION={'gojo':3.5,'saber':7.2,'archer':460/60,'lancer':6.4,'gil':7.6,'berserker':6.6,'iskandar':7.5,'medusa':7.0}
+NP_SOURCE_DURATION={'gojo':5.4,'saber':7.2,'archer':460/60,'lancer':6.4,'gil':7.6,'berserker':6.6,'iskandar':7.5,'medusa':7.0}
 NP_DURATION={char:min(seconds,NP_MAX_DURATION-NP_TITLE_DURATION) for char,seconds in NP_SOURCE_DURATION.items()}
 COMBAT = {
  'gojo': dict(light=.25,heavy=.5,skill_cool=.85,skill_cost=28,skill_damage=18,np_damage=36),
@@ -105,7 +105,7 @@ def validate_settings(data):
  return result
 
 def character_catalog():
- return {'augments':aug.catalog(),'characters':{k:{**v,**COMBAT[k], 'hp':100,'mana':100,'manaRegen':11,'heavyDamage':v['damage']*1.7,'heavyCost':12,'heavyReach':v['reach']+30,'skillWindup':{'saber':.24,'archer':.9,'lancer':.3,'gil':0,'iskandar':.32,'medusa':.25,'berserker':.48,'gojo':.32}[k],'skillVelocity':{'saber':820,'archer':1150,'lancer':1000,'gil':670,'iskandar':560,'medusa':950,'berserker':0,'gojo':850}[k],'skillHits':3 if k=='gil' else 1,'npHits':0 if k=='berserker' else 12 if k=='gil' else 1,'npEffect':'체력 12% 회복 · 6초간 피해 35% 감소 · 효과 중 치명타를 받으면 체력 20%로 재기(라운드당 1회)' if k=='berserker' else '허식 자: 고정 기본 피해 36 · 가드/보호막 적용, 회피 가능. HP 30% 이하: 무량공처 1.5초 양측 행동 제한 → 조준 고정 → 0.7초 회피 틈 → 자. 원작을 대전용으로 재구성' if k=='gojo' else '공격형 보구','npDuration':NP_TITLE_DURATION+NP_DURATION[k],'dashCost':18,'dashDistance':145,'dashInv':.17,'dashCooldown':.25,'guardReduction':82,'guardCost':6,'sealCount':3,'sealHeal':28} for k,v in CHARS.items()}}
+ return {'augments':aug.catalog(),'characters':{k:{**v,**COMBAT[k], 'hp':100,'mana':100,'manaRegen':11,'heavyDamage':v['damage']*1.7,'heavyCost':12,'heavyReach':v['reach']+30,'skillWindup':{'saber':.24,'archer':.9,'lancer':.3,'gil':0,'iskandar':.32,'medusa':.25,'berserker':.48,'gojo':.32}[k],'skillVelocity':{'saber':820,'archer':1150,'lancer':1000,'gil':670,'iskandar':560,'medusa':950,'berserker':0,'gojo':850}[k],'skillHits':3 if k=='gil' else 1,'npHits':0 if k=='berserker' else 12 if k=='gil' else 1,'npEffect':'체력 12% 회복 · 6초간 피해 35% 감소 · 효과 중 치명타를 받으면 체력 20%로 재기(라운드당 1회)' if k=='berserker' else '허식 자: 창과 혁을 결합. 연출 6.4초 → 0.6초 발사 준비. 기본 고정 피해 36 · 가드/보호막 적용 · 점프/회피 가능. HP 조건 없음. 전투 수치는 대전용 조정' if k=='gojo' else '공격형 보구','npDuration':NP_TITLE_DURATION+NP_DURATION[k],'dashCost':18,'dashDistance':145,'dashInv':.17,'dashCooldown':.25,'guardReduction':82,'guardCost':6,'sealCount':3,'sealHeal':28} for k,v in CHARS.items()}}
 
 def begin_draft(r):
  first=secrets.randbelow(2)
@@ -309,7 +309,7 @@ def tick(r,dt,now):
    p['np']=min(80,aug.value(p,'npRefund'));p['moving']=False;p['action']='np';p['anim']=p['animMax']=NP_TITLE_DURATION+NP_DURATION[p['char']];p['cool']=p['anim']
    r['cinematic']=dict(owner=i,char=p['char'],face=p['face'],elapsed=0,titleDuration=NP_TITLE_DURATION,duration=p['anim'],playbackRate=NP_SOURCE_DURATION[p['char']]/NP_DURATION[p['char']])
    if p['char']=='gojo':
-    r['cinematic'].update(variant='void' if p['hp']<=p['maxHp']*.3 else 'purple',titleDuration=0,duration=4.5,playbackRate=1)
+    r['cinematic'].update(variant='purple',titleDuration=0,duration=6.4,playbackRate=1)
    if settings(r)['skipCinema']:release_np(r,r['cinematic'])
    for other in ps:other.update(queued=[],prev=list(other['keys']))
    return
@@ -597,4 +597,5 @@ if __name__=='__main__':
  import sys
  sys.modules['server']=sys.modules[__name__]
  main()
+
 
