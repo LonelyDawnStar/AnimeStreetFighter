@@ -20,11 +20,15 @@ try{const value=localStorage.getItem('grail-ai-level');if(aiNames[value])$('aiLe
 function aiChoice(){const value=$('aiLevel').value;$('aiHint').textContent=aiHints[value];try{localStorage.setItem('grail-ai-level',value)}catch{}}
 $('aiLevel').onchange=aiChoice;aiChoice();
 $('training').onclick=()=>enter('training');$('create').onclick=()=>enter('create');$('practice').onclick=()=>enter('practice');$('join').onclick=()=>enter('join');$('code').addEventListener('keydown',e=>{if(e.key==='Enter')enter('join')});
-let socket=null,retry=null,inputTimer=null,pingTimer=null;
+let socket=null,retry=null,inputTimer=null,pingTimer=null,latestSeq=null;
 function remember(){try{sessionStorage.setItem('grail-session',JSON.stringify(session))}catch{}}
 function forget(){try{sessionStorage.removeItem('grail-session')}catch{}}
-function stopTransport(){clearTimeout(retry);clearInterval(inputTimer);clearInterval(pingTimer);if(socket){socket.onclose=null;socket.close();socket=null}}
-function send(msg){if(socket?.readyState===WebSocket.OPEN){socket.send(JSON.stringify(msg));return true}return false}
+function stopTransport(){clearTimeout(retry);clearInterval(inputTimer);clearInterval(pingTimer);latestSeq=null;if(socket){socket.onclose=null;socket.onmessage=null;socket.onerror=null;socket.close();socket=null}}
+function send(msg){
+ if(socket?.readyState!==WebSocket.OPEN||socket.bufferedAmount>4096)return false;
+ if(msg.type==='input'){if(latestSeq===null)return false;msg={...msg,seq:latestSeq}}
+ socket.send(JSON.stringify(msg));return true;
+}
 $('ready').onclick=()=>{if(!send({type:'ready'}))error('서버에 다시 연결하는 중입니다.')};
 function leaveRoom(){window.matchControls?.closeSettings();document.body.classList.remove('pregame','result-active');if(session)api('leave',session).finally(()=>refreshRooms()).catch(()=>{});NobleCinema.draw(c,{});session=null;state=null;generation++;stopTransport();forget();clearKeys();$('lobby').hidden=false;$('game').hidden=true;$('connection').textContent='LOBBY';history.replaceState(null,'',location.pathname)}
 $('leave').onclick=leaveRoom;
@@ -33,21 +37,38 @@ function connect(gen){
  if(!session||gen!==generation)return;
  stopTransport();$('connection').textContent='CONNECTING';
  const ws=new WebSocket((location.protocol==='https:'?'wss://':'ws://')+location.host+'/ws');socket=ws;
- ws.onopen=()=>{if(gen!==generation){ws.close();return}send({type:'auth',code:session.code,token:session.token});$('connection').textContent='ONLINE · LIVE';
-  inputTimer=setInterval(()=>{if(socket!==ws)return;send({type:'input',keys:[...new Set([...keys,...pending])]});pending.clear()},1000/30);
-  pingTimer=setInterval(()=>send({type:'ping',stamp:performance.now()}),1500);
+ let lastState=performance.now(),lastPump=lastState,lastPing=0,pingStamp=null,loopLag=0,recovering=false;
+ function recover(){if(recovering||socket!==ws||gen!==generation)return;recovering=true;clearKeys();smoothed=[];connect(gen)}
+ ws.onopen=()=>{if(gen!==generation||socket!==ws){ws.close();return}send({type:'auth',protocol:2,code:session.code,token:session.token});$('connection').textContent='ONLINE · LIVE';
+  inputTimer=setInterval(()=>{
+   if(socket!==ws)return;
+   const now=performance.now(),gap=now-lastPump;lastPump=now;
+   if(gap>1500||now-lastState>3000||(pingStamp!==null&&now-pingStamp>3000)){recover();return}
+   if(now-lastState>1000){pending.clear();$('connection').textContent='연결 지연 · 복구 확인 중';return}
+   send({type:'input',keys:document.hidden?[]:[...new Set([...keys,...pending])]});pending.clear();
+   if(pingStamp===null&&now-lastPing>=1000){lastPing=now;if(send({type:'ping',stamp:now}))pingStamp=now}
+  },1000/30);
  };
- ws.onmessage=e=>{if(gen!==generation)return;const msg=JSON.parse(e.data);
-  if(msg.type==='state')applyState(msg.state);
-  if(msg.type==='pong')$('ping').textContent=Math.round(performance.now()-msg.stamp)+' ms · LIVE';
+ ws.onmessage=e=>{if(gen!==generation||socket!==ws)return;const msg=JSON.parse(e.data);
+  if(msg.type==='state'){
+   lastState=performance.now();latestSeq=msg.seq??null;loopLag=msg.loopLagMs||0;
+   if(latestSeq!==null)send({type:'ack',seq:latestSeq});
+   $('connection').textContent='ONLINE · LIVE';applyState(msg.state);
+  }
+  if(msg.type==='pong'&&msg.stamp===pingStamp){
+   const rtt=Math.round(performance.now()-msg.stamp);pingStamp=null;
+   $('ping').textContent=rtt+' ms'+(rtt>500?' · 지연':' · LIVE');
+   $('ping').title='통신 왕복 '+rtt+'ms / 서버 처리 지연(최근 5초) '+loopLag+'ms';
+   if(rtt>3000)recover();
+  }
   if(msg.type==='notice')error(msg.message);
   if(msg.type==='fatal'){generation++;stopTransport();forget();clearKeys();error(msg.message);$('connection').textContent='DISCONNECTED';$('overlay').hidden=false;$('overTitle').textContent='다시 접속해 주세요';$('overDesc').textContent=msg.message;$('ready').disabled=true}
  };
- ws.onclose=e=>{if(gen!==generation)return;clearInterval(inputTimer);clearInterval(pingTimer);if(state)state.paused=true;clearKeys();$('connection').textContent='RECONNECTING';$('overlay').hidden=false;$('overTitle').textContent='연결 복구 중';$('overDesc').textContent='30초 안에 돌아오면 경기를 이어갑니다.';$('ready').disabled=true;
+ ws.onclose=e=>{if(gen!==generation||socket!==ws)return;clearInterval(inputTimer);clearInterval(pingTimer);if(state)state.paused=true;clearKeys();$('connection').textContent='RECONNECTING';$('overlay').hidden=false;$('overTitle').textContent='연결 복구 중';$('overDesc').textContent='30초 안에 돌아오면 경기를 이어갑니다.';$('ready').disabled=true;
   if(e.code===4001){generation++;forget();$('overDesc').textContent='다른 창에서 이 플레이어로 접속했습니다.';return}
   retry=setTimeout(()=>connect(gen),1000);
  };
- ws.onerror=()=>ws.close();
+ ws.onerror=()=>{if(socket===ws)ws.close()};
 }
 $('copyInvite').onclick=async()=>{if(!session)return;const url=new URL(location.href);url.search='';url.searchParams.set('room',session.code);url.hash='';try{await navigator.clipboard.writeText(url.href);$('copyInvite').textContent='초대 링크 복사됨';setTimeout(()=>$('copyInvite').textContent='초대 링크 복사',1800)}catch{window.prompt('이 초대 링크를 복사해서 친구에게 보내세요.',url.href)}};
 const invited=new URLSearchParams(location.search).get('room');if(invited&&/^[0-9a-f]{6}$/i.test(invited)){$('code').value=invited.toUpperCase();$('inviteHint').textContent='초대받은 방 '+invited.toUpperCase()+' · 캐릭터를 선택하고 참가하세요.'}
@@ -117,3 +138,4 @@ async function refreshRooms(){
 }
 $('refreshRooms').onclick=refreshRooms;$('onlyOpen').onchange=renderRooms;
 refreshRooms();
+
