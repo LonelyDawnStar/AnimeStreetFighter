@@ -2,6 +2,7 @@
 import json, math, os, random, secrets, threading, time
 import augments as aug
 import gojo
+import acheron
 from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 from pathlib import Path
 
@@ -9,6 +10,7 @@ ROOT = Path(__file__).parent / 'static'
 LOCK = threading.RLock()
 ROOMS = {}
 CHARS = {
+ 'acheron': dict(name='아케론',color='#cc9dff',speed=270,reach=125,damage=9,np='SLASHED DREAM'),
  'gojo': dict(name='고죠 사토루',color='#9acfff',speed=285,reach=100,damage=9,np='HOLLOW PURPLE'),
  'saber': dict(name='알트리아',color='#79c9ff',speed=270,reach=120,damage=10,np='EXCALIBUR'),
  'archer': dict(name='에미야',color='#ff7878',speed=290,reach=112,damage=9,np='UNLIMITED BLADE WORKS'),
@@ -21,9 +23,10 @@ KEYS={'left','right','jump','guard','light','heavy','skill','dash','np','seal'}
 TREASURY=('longsword','spear','axe','greatsword','halberd','sickle')
 NP_TITLE_DURATION=1.0
 NP_MAX_DURATION=9.0
-NP_SOURCE_DURATION={'gojo':5.4,'saber':7.2,'archer':460/60,'lancer':6.4,'gil':7.6,'berserker':6.6,'iskandar':7.5,'medusa':7.0}
+NP_SOURCE_DURATION={'acheron':5.2,'gojo':5.4,'saber':7.2,'archer':460/60,'lancer':6.4,'gil':7.6,'berserker':6.6,'iskandar':7.5,'medusa':7.0}
 NP_DURATION={char:min(seconds,NP_MAX_DURATION-NP_TITLE_DURATION) for char,seconds in NP_SOURCE_DURATION.items()}
 COMBAT = {
+ 'acheron': dict(light=.28,heavy=.52,skill_cool=.85,skill_cost=28,skill_damage=18,np_damage=0),
  'gojo': dict(light=.25,heavy=.5,skill_cool=.85,skill_cost=28,skill_damage=18,np_damage=36),
  'saber': dict(light=.24,heavy=.48,skill_cool=.65,skill_cost=28,skill_damage=15,np_damage=34),
  'archer': dict(light=.24,heavy=.46,skill_cool=1.15,skill_cost=24,skill_damage=28,np_damage=32),
@@ -70,13 +73,13 @@ def bot_input(r,p,enemy,dt,rng=None):
   if ultimate and cfg['heal'] and p['seals']>0 and p['hp']<p.get('maxHp',100)*.55:keys=['seal']
   elif p['mana']>=6 and p['y']==0:keys=['guard']
   elif not ultimate and p['mana']>=18:keys=[away,'dash']
- elif p['np']>=100 and dist<850 and ground and (p['char']!='berserker' or (p['hp']<p.get('maxHp',100)*.7 and p.get('godTime',0)<=0)) and rng.random()<cfg['accuracy']:
+ elif p['np']>=100 and not (p['char']=='acheron' and acheron.active(p)) and dist<850 and ground and (p['char']!='berserker' or (p['hp']<p.get('maxHp',100)*.7 and p.get('godTime',0)<=0)) and rng.random()<cfg['accuracy']:
   keys=['np']
  elif dist<ch['reach']-8 and ground and rng.random()<cfg['accuracy']:
   keys=['heavy' if p['mana']>=24 and enemy['action']=='guard' else 'light']
  else:
   can_skill=p['mana']>=combat['skill_cost']+5 and ground
-  skill_range=245 if p['char']=='berserker' else 320 if p['char']=='iskandar' else 510 if p['char']=='medusa' else 800
+  skill_range=290 if p['char']=='acheron' else 245 if p['char']=='berserker' else 320 if p['char']=='iskandar' else 510 if p['char']=='medusa' else 800
   if can_skill and 130<dist<skill_range and rng.random()<cfg['accuracy']:
    keys=['skill']
   else:
@@ -105,7 +108,7 @@ def validate_settings(data):
  return result
 
 def character_catalog():
- return {'augments':aug.catalog(),'characters':{k:{**v,**COMBAT[k], 'hp':100,'mana':100,'manaRegen':11,'heavyDamage':v['damage']*1.7,'heavyCost':12,'heavyReach':v['reach']+30,'skillWindup':{'saber':.24,'archer':.9,'lancer':.3,'gil':0,'iskandar':.32,'medusa':.25,'berserker':.48,'gojo':.32}[k],'skillVelocity':{'saber':820,'archer':1150,'lancer':1000,'gil':670,'iskandar':560,'medusa':950,'berserker':0,'gojo':850}[k],'skillHits':3 if k=='gil' else 1,'npHits':0 if k=='berserker' else 12 if k=='gil' else 1,'npEffect':'체력 12% 회복 · 6초간 피해 35% 감소 · 효과 중 치명타를 받으면 체력 20%로 재기(라운드당 1회)' if k=='berserker' else '허식 자: 창과 혁을 결합. 연출 6.4초 → 0.6초 발사 준비. 기본 고정 피해 36 · 가드/보호막 적용 · 점프/회피 가능. HP 조건 없음. 전투 수치는 대전용 조정' if k=='gojo' else '공격형 보구','npDuration':NP_TITLE_DURATION+NP_DURATION[k],'dashCost':18,'dashDistance':145,'dashInv':.17,'dashCooldown':.25,'guardReduction':82,'guardCost':6,'sealCount':3,'sealHeal':28} for k,v in CHARS.items()}}
+ return {'augments':aug.catalog(),'characters':{k:{**v,**COMBAT[k], 'hp':100,'mana':100,'manaRegen':11,'heavyDamage':v['damage']*1.7,'heavyCost':12,'heavyReach':v['reach']+30,'skillWindup':{'saber':.24,'archer':.9,'lancer':.3,'gil':0,'iskandar':.32,'medusa':.25,'berserker':.48,'gojo':.32,'acheron':.28}[k],'skillVelocity':{'saber':820,'archer':1150,'lancer':1000,'gil':670,'iskandar':560,'medusa':950,'berserker':0,'gojo':850,'acheron':0}[k],'skillHits':3 if k=='gil' else 1,'npHits':0 if k in ('berserker','acheron') else 12 if k=='gil' else 1,'npEffect':'다음 J/K 3회 강화: J 14 / K 20, 사거리 +85. 3회 모두 적중 시 황천의 귀환 18 추가. 헛침/가드/회피도 횟수 소모, 가드·회피는 적중 수 제외. 강화 중 재발동 불가, 라운드 종료 시 초기화. 원작 연출을 대전용으로 재구성' if k=='acheron' else '체력 12% 회복 · 6초간 피해 35% 감소 · 효과 중 치명타를 받으면 체력 20%로 재기(라운드당 1회)' if k=='berserker' else '허식 자: 창과 혁을 결합. 연출 6.4초 → 0.6초 발사 준비. 기본 고정 피해 36 · 가드/보호막 적용 · 점프/회피 가능. HP 조건 없음. 전투 수치는 대전용 조정' if k=='gojo' else '공격형 보구','npDuration':NP_TITLE_DURATION+NP_DURATION[k],'dashCost':18,'dashDistance':145,'dashInv':.17,'dashCooldown':.25,'guardReduction':82,'guardCost':6,'sealCount':3,'sealHeal':28} for k,v in CHARS.items()}}
 
 def begin_draft(r):
  first=secrets.randbelow(2)
@@ -132,7 +135,7 @@ def setup(r):
  r.pop('cinematic',None);r.pop('result',None);r.pop('augmentation',None);r.pop('gojoCast',None);r.pop('domain',None)
  rule=settings(r)
  for i,p in enumerate(r['players']):
-  p.pop('_ai',None);p.pop('rematch',None)
+  p.pop('_ai',None);p.pop('rematch',None);acheron.reset(p)
   m=aug.rebuild(p);maximum=round(rule['hp']*(1+min(1.5,m.get('hp',0))),2)
   carry=r['round']>1
   old_hp=p['hp'];old_max=p.get('maxHp',rule['hp']);old_np=p['np']
@@ -197,6 +200,7 @@ def hit(r,a,b,damage,knock=35,ultimate=False,skill=False,proc=False,fixed=False,
  return True
 
 def release_np(r,scene):
+ if scene['char']=='acheron':acheron.release(r,scene);return
  if scene['char']=='gojo':gojo.release(r,scene);return
  ps=r['players']
  p=ps[scene['owner']];ch=CHARS[p['char']]
@@ -284,7 +288,7 @@ def tick(r,dt,now):
   if p['bot']:p['keys']=bot_input(r,p,enemy,dt)
   elif now-p['last']>.4:p['keys']=[]
   ks=set(p['keys']);pressed=(ks-set(p['prev']))|set(p['queued']);p['queued']=[];p['prev']=list(ks)
-  beam=next((s for s in r['shots'] if s['owner']==i and (s['kind'] in ('ea_beam','greatslash','army_charge','pegasus_charge','royal_charge','axe_slam') or (s['kind'] in ('caladbolg','strike_air','spear_throw','chain_throw') and s['delay']>0))),None)
+  beam=next((s for s in r['shots'] if s['owner']==i and (s['kind'] in ('ea_beam','greatslash','army_charge','pegasus_charge','royal_charge','axe_slam','octobolt','stygian') or (s['kind'] in ('caladbolg','strike_air','spear_throw','chain_throw') and s['delay']>0))),None)
   p['face']=beam['face'] if beam else (1 if enemy['x']>=p['x'] else -1)
   for k in ('cool','stun','inv','dashInv','anim','godTime'):p[k]=max(0,p.get(k,0)-dt)
   if p.get('godTime',0)<=0:p['godReady']=False
@@ -305,7 +309,7 @@ def tick(r,dt,now):
   if 'dash' in pressed and p['mana']>=max(4,18-aug.value(p,'dashCost')):
    p['mana']-=max(4,18-aug.value(p,'dashCost'));p['x']=max(55,min(1225,p['x']+(moving or p['face'])*(145+min(100,aug.value(p,'dashDistance')))));p['dashInv']=.17;p['cool']=.25;p['action']='dash';p['anim']=p['animMax']=.25
    aug.dash(r,i,hit)
-  elif 'np' in pressed and p['np']>=100:
+  elif 'np' in pressed and p['np']>=100 and not (p['char']=='acheron' and acheron.active(p)):
    p['np']=min(80,aug.value(p,'npRefund'));p['moving']=False;p['action']='np';p['anim']=p['animMax']=NP_TITLE_DURATION+NP_DURATION[p['char']];p['cool']=p['anim']
    r['cinematic']=dict(owner=i,char=p['char'],face=p['face'],elapsed=0,titleDuration=NP_TITLE_DURATION,duration=p['anim'],playbackRate=NP_SOURCE_DURATION[p['char']]/NP_DURATION[p['char']])
    if p['char']=='gojo':
@@ -316,6 +320,7 @@ def tick(r,dt,now):
   elif 'skill' in pressed and p['mana']>=combat['skill_cost']:
    p['mana']-=combat['skill_cost'];p['cool']=combat['skill_cool'];p['anim']=p['animMax']=.5/rate;p['action']='skill'
    if aug.skill(r,i,rate):continue
+   if p['char']=='acheron':acheron.skill(r,i,rate);continue
    if p['char']=='gojo':
     p.update(action='red',anim=combat['skill_cool'],animMax=combat['skill_cool'],moving=False)
     r['shots'].append(dict(kind='red',owner=i,x=p['x']+p['face']*65,y=p['y']+140,v=p['face']*850,face=p['face'],radius=24,life=1.5,delay=.32/rate,damage=18,elapsed=0))
@@ -345,6 +350,7 @@ def tick(r,dt,now):
    heavy='heavy' in pressed and p['mana']>=12
    if heavy:p['mana']-=12
    p['cool']=combat['heavy'] if heavy else combat['light'];p['anim']=p['animMax']=p['cool'];p['action']='heavy' if heavy else 'light'
+   if acheron.basic(r,i,heavy,ch['reach']+(30 if heavy else 0),hit):continue
    if abs(enemy['x']-p['x'])<ch['reach']+(30 if heavy else 0) and abs(enemy['y']-p['y'])<85:hit(r,p,enemy,ch['damage']*(1.7*(1+aug.value(p,'heavyDamage')) if heavy else 1),60 if heavy else 25)
   if p['action']!='run':p['moving']=False
  # Prevent overlapping grounded fighters.
@@ -354,6 +360,9 @@ def tick(r,dt,now):
   mid=max(88,min(1192,mid));a['x']=mid-d*33;b['x']=mid+d*33
  shots=[]
  for s in r['shots']:
+  if s['kind'] in ('octobolt','stygian'):
+   if acheron.shot(r,s,dt,hit):shots.append(s)
+   continue
   if s['kind'] in ('purple','red'):
    if gojo.shot(r,s,dt,hit):shots.append(s)
    continue
@@ -467,7 +476,8 @@ def tick(r,dt,now):
   final=max(r['score'])>=settings(r)['bestOf']//2+1
   duration=4.0 if final else 3.2
   r.update(phase='ended' if final else 'between',delay=duration,winner=winner,shots=[],fx=[],result=dict(winner=winner,final=final,elapsed=0.0,duration=duration,round=r['round'],score=list(r['score'])))
-  for p in ps:p.update(keys=[],prev=[],queued=[],moving=False,action='idle',anim=0,rematch=p['bot'])
+  for p in ps:
+   acheron.reset(p);p.update(keys=[],prev=[],queued=[],moving=False,action='idle',anim=0,rematch=p['bot'])
   if r['phase']=='ended':
    for p in ps:p['ready']=p['bot']
 
@@ -597,5 +607,6 @@ if __name__=='__main__':
  import sys
  sys.modules['server']=sys.modules[__name__]
  main()
+
 
 
