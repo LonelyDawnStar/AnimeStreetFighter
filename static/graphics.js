@@ -28,7 +28,7 @@ const GrailArt=(()=>{
   });
  }
  function portrait(frame,x,y,w,h){const face=make(w,h),g=face.getContext('2d');g.imageSmoothingEnabled=false;g.drawImage(frame.canvas,x,y,w,h,0,0,w,h);return face}
- art.promise=Promise.all([load('/assets/riverside.png'),load('/assets/saber-v05.png'),load('/assets/servants.png'),load('/assets/archer-motion-v04.png'),load('/assets/lancer-motion-v04.png'),load('/assets/gil-motion-v04.png'),load('/assets/gil-weapon.png'),load('/assets/treasury-v06.png'),load('/assets/saber-plant-v015.png'),load('/assets/gil-ea-v016.png'),load('/assets/emiya-caladbolg-v021.png'),load('/assets/saber-greatslash-v025.png'),load('/assets/saber-strike-air-v025.png'),load('/assets/lancer-throw-v025.png'),load('/assets/lancer-source-v025.png'),load('/assets/combat-effects-v024.png'),load('/assets/iskandar-v031.png'),load('/assets/medusa-v031.png'),load('/assets/rider-mounts-v031.png')]).then(([stage,saber,others,archerMotion,lancerMotion,gilMotion,weapon,treasury,saberPlant,gilEa,caladBow,saberGreat,saberAir,lancerThrow,lancerSource,combatEffects,iskandar,medusa,mounts])=>{
+ art.promise=Promise.all([load('/assets/riverside.png'),load('/assets/saber-v05.png'),load('/assets/servants.png'),load('/assets/archer-motion-v04.png'),load('/assets/lancer-motion-v04.png'),load('/assets/gil-motion-v04.png'),load('/assets/gil-weapon.png'),load('/assets/treasury-v06.png'),load('/assets/saber-plant-v015.png'),load('/assets/gil-ea-v016.png'),load('/assets/emiya-caladbolg-v021.png'),load('/assets/saber-greatslash-v025.png'),load('/assets/saber-strike-air-v025.png'),load('/assets/lancer-throw-v025.png'),load('/assets/lancer-source-v025.png'),load('/assets/combat-effects-v024.png'),load('/assets/iskandar-v031.png'),load('/assets/medusa-v031.png'),load('/assets/rider-mounts-v031.png'),load('/assets/berserker-v033.png')]).then(([stage,saber,others,archerMotion,lancerMotion,gilMotion,weapon,treasury,saberPlant,gilEa,caladBow,saberGreat,saberAir,lancerThrow,lancerSource,combatEffects,iskandar,medusa,mounts,berserker])=>{
   art.stage=stage;
   const sf=unpack(saber,4,[166,480,790,1120,174,487,801,1128,170,478,802,1124,169,476,788,1120],4);
   sf.forEach(f=>f.scale=.77);
@@ -107,11 +107,20 @@ const GrailArt=(()=>{
   // Horse bodies (not wing tips) share an anchor: wing motion must not move the rider.
   mounted.forEach((f,i)=>{f.scale=i<3?.94:i<6?.66:.83;f.foot=(i<3?380:i<6?780:1190)-f.source.miny+1});
   art.mounts={iskandar:mounted.slice(0,3),army:mounted.slice(3,6),medusa:mounted.slice(6,9)};
+  // Fixed atlas rectangles and measured foot pivots: one scale for every pose.
+  const br=[[0,0,384,337,175,324],[384,0,384,337,221,327],[768,0,410,337,224,327],[1184,0,352,340,200,337],
+   [0,337,384,343,217,337],[384,340,384,340,192,333],[768,340,422,340,190,333],[1190,340,346,340,169,335],
+   [0,684,384,340,192,303],[384,684,384,340,216,303],[768,684,422,340,209,303],[1190,684,346,340,168,303]];
+  const bf=br.map(([x,y,w,h,pivot,foot])=>({canvas:cut(berserker,x,y,w,h),pivot,foot,scale:.84}));
+  art.frames.berserker={idle:[bf[0]],run:[bf[1],bf[2]],jump:[bf[3]],attack:[bf[4],bf[5],bf[6],bf[0]],guard:[bf[7]],hurt:[bf[8]],dash:[bf[9]],release:[bf[11],bf[10],bf[10],bf[11]]};
+  art.portraits.berserker=portrait(bf[0],139,19,110,130);
   art.ready=true;return art;
  }).catch(e=>{art.failed=true;art.error=e;return art});
  function rect(g,x,y,w,h,color){g.fillStyle=color;g.fillRect(Math.round(x),Math.round(y),Math.round(w),Math.round(h))}
  function label(g,str,x,y,size,color='#f9e4b0',align='left'){g.fillStyle=color;g.font=`bold ${size}px monospace`;g.textAlign=align;g.fillText(str,x,y)}
  function frameFor(p,t){const f=art.frames[p.char];if(!f)return null;
+  if(p.char==='berserker'&&p.action==='god_hand')return f.release[2];
+  if(p.action==='axe_slam'){const e=(p.animMax-p.anim)*(p.attackSpeed||1);return f.attack[e<.48?0:e<.62?1:e<.95?2:3]}
   if(['iskandar','medusa'].includes(p.char)&&p.action==='np_release'&&(p.animMax-p.anim)>=.35)return art.mounts[p.char][Math.floor((p.animMax-p.anim)*10)%3];
   if(['royal_charge','chain_throw'].includes(p.action)){const e=(p.animMax-p.anim)*(p.attackSpeed||1);return f.attack[e<.15?0:e<(p.char==='iskandar'?.32:.25)?1:e<.53?2:3]}
   if(p.char==='saber'&&p.action==='np_release'){const e=(p.animMax||1.4)-p.anim;return f.great[e<.18?0:e<.48?1:e<1.05?2:3]}
@@ -138,7 +147,7 @@ const GrailArt=(()=>{
   if(!art.ready)return;
   const f=frameFor(p,t);if(!f)return;
   const action=['light','heavy','skill','np'].includes(p.action),isRun=p.action==='run'&&p.moving!==false;
-  const bob=['np_release','strike_air','spear_throw','caladbolg'].includes(p.action)?0:(p.airborne??(p.y>0))?0:Math.round(Math.sin(t*(isRun?16:3))*(isRun?2:1));
+  const bob=['np_release','strike_air','spear_throw','caladbolg','axe_slam','god_hand'].includes(p.action)?0:(p.airborne??(p.y>0))?0:Math.round(Math.sin(t*(isRun?16:3))*(isRun?2:1));
   g.save();g.imageSmoothingEnabled=false;g.translate(Math.round(p.x),Math.round(ground-p.y+bob));
   g.scale((p.face||1)*size,size);const scale=f.scale||.65;
   if(p.inv>0||p.dashInv>0)g.globalAlpha=Math.floor(t*20)%2?.5:.85;
@@ -159,6 +168,9 @@ const GrailArt=(()=>{
    else if(p.char==='archer'){for(let n=0;n<7;n++){g.save();g.translate(-110+n*38,-80-n%3*28);g.rotate(-.7);rect(g,0,-120*charge,5,120*charge,color);g.restore()}}
    else{for(let j=0;j<3;j++)for(let n=0;n<20;n++){const a=n*Math.PI/10+e*(j%2?-20:20);rect(g,115+j*15+Math.cos(a)*(20+j*12),-155+Math.sin(a)*(12+j*10),5,3,j===1?'#ffdeb0':color)}}
    g.restore();
+  }
+  if(p.godTime>0){
+   for(let j=0;j<12;j++){const a=j*Math.PI/6+t*.6;rect(g,Math.cos(a)*95,-130+Math.sin(a)*132,5,10,j===0&&p.godReady?'#fff1cd':'#dca76c99')}
   }
   draw();
   if(p.action==='caladbolg'){
@@ -191,7 +203,7 @@ const GrailArt=(()=>{
   g.save();g.imageSmoothingEnabled=false;
   const gradient=g.createLinearGradient(0,0,0,146);gradient.addColorStop(0,'#080f1bf5');gradient.addColorStop(1,'#080f1bc0');g.fillStyle=gradient;g.fillRect(0,0,1280,144);
   rect(g,24,143,1232,1,'#e6cb9244');
-  const ids={saber:'SABER',archer:'ARCHER',lancer:'LANCER',gil:'GILGAMESH',iskandar:'ISKANDAR',medusa:'MEDUSA'};
+  const ids={saber:'SABER',archer:'ARCHER',lancer:'LANCER',gil:'GILGAMESH',iskandar:'ISKANDAR',medusa:'MEDUSA',berserker:'BERSERKER'};
   for(let i=0;i<2;i++){
    const p=s.players[i],right=i===1,x=right?728:112,w=440,px=right?1192:24,accent=i===slot?'#85dbc9':'#e6cb92';
    rect(g,px,22,64,80,'#1a293d');rect(g,px,22,2,80,accent);
@@ -213,11 +225,16 @@ const GrailArt=(()=>{
   label(g,'ROUND '+(s.round||1),640,36,10,'#a4b1c3','center');
   label(g,s.training?'∞':String(Math.ceil(s.clock)).padStart(2,'0'),640,83,43,'#eef1f6','center');
   label(g,(s.score||[0,0]).join('  :  '),640,108,12,'#e6cb92','center');
+  s.players.forEach((p,i)=>{if(p.char==='berserker')label(g,p.godTime>0?'GOD HAND '+p.godTime.toFixed(1)+'s · '+(p.godReady?'재기 준비':'재기 소진'):(p.reviveUsed?'재기 소진':'재기 1회'),i?1240:40,135,12,'#e9bc7d',i?'right':'left')});
   if(s.training){const d=s.players.find(p=>p.dummy);label(g,'TRAINING / DAMAGE '+(d?.damageTaken||0)+' / LAST '+(d?.lastDamage||0),640,164,12,'#e6cb92','center')}
   g.restore();
  };
  art.effects=(g,s,t)=>{
   for(const sh of s.shots){const dir=Math.sign(sh.v),y=535-sh.y,x=sh.x;
+   if(sh.kind==='axe_slam'){
+    if(sh.delay>0){const owner=s.players[sh.owner];rect(g,owner.x-42,535-owner.y-290,84,4,'#372322');rect(g,owner.x-42,535-owner.y-290,84*Math.max(0,1-sh.delay/(.48/(owner.attackSpeed||1))),4,'#f0bc80')}
+    continue;
+   }
    if(['army_charge','pegasus_charge','royal_charge','chain_throw'].includes(sh.kind)){
     if(sh.delay>0)continue;const owner=s.players[sh.owner],face=sh.face||1;
     if(sh.kind==='chain_throw'){
@@ -301,7 +318,9 @@ const GrailArt=(()=>{
    else if(sh.kind==='np'){for(let j=0;j<6;j++)rect(g,x-dir*(180+j*12),y-32+j*5,180+j*12,64-j*10,['#473b9090','#608ef8bb','#91d9ff','#e0f9ff','#fff6c9','#ffffff'][j]);}
    else{for(let j=0;j<7;j++)rect(g,x-dir*j*8,y-4+j%2,10,6,j<3?'#fff4d2':sh.color)}
   }
-  for(const f of s.fx){if(f.kind==='greatimpact'){
+  for(const f of s.fx){if(f.kind==='rebirth'){
+   g.save();g.globalAlpha=Math.min(1,f.life*2);for(let j=0;j<12;j++){const a=j*Math.PI/6,r=65+(1-f.life/.7)*100;rect(g,f.x+Math.cos(a)*r,535-f.y+Math.sin(a)*r,7,16,'#e9bc7d')}g.restore();continue;
+  }if(f.kind==='greatimpact'){
    g.save();g.globalAlpha=Math.min(1,f.life*5);g.imageSmoothingEnabled=false;
    g.drawImage(art.combatFX.impact,f.x-145,535-f.y-190,290,200);g.restore();continue;
   }if(f.kind==='caladburst'){

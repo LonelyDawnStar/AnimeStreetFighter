@@ -12,12 +12,13 @@ CHARS = {
  'lancer': dict(name='쿠 훌린',color='#65ede1',speed=295,reach=138,damage=8,np='GAE BOLG'),
  'gil': dict(name='길가메시',color='#ffd477',speed=240,reach=95,damage=8,np='ENUMA ELISH'),
  'iskandar':dict(name='이스칸다르',color='#e6aa62',speed=245,reach=125,damage=11,np='IONIOI HETAIROI'),
+ 'berserker':dict(name='헤라클레스',color='#dc9464',speed=225,reach=145,damage=12,np='GOD HAND'),
  'medusa':dict(name='메두사',color='#bf99ec',speed=310,reach=118,damage=8,np='BELLEROPHON')}
 KEYS={'left','right','jump','guard','light','heavy','skill','dash','np','seal'}
 TREASURY=('longsword','spear','axe','greatsword','halberd','sickle')
 NP_TITLE_DURATION=1.0
 NP_MAX_DURATION=9.0
-NP_SOURCE_DURATION={'saber':460/60,'archer':460/60,'lancer':120/30,'gil':510/30,'iskandar':7.5,'medusa':7.0}
+NP_SOURCE_DURATION={'saber':7.2,'archer':460/60,'lancer':6.4,'gil':7.6,'berserker':6.6,'iskandar':7.5,'medusa':7.0}
 NP_DURATION={char:min(seconds,NP_MAX_DURATION-NP_TITLE_DURATION) for char,seconds in NP_SOURCE_DURATION.items()}
 COMBAT = {
  'saber': dict(light=.24,heavy=.48,skill_cool=.65,skill_cost=28,skill_damage=15,np_damage=34),
@@ -25,6 +26,7 @@ COMBAT = {
  'lancer': dict(light=.30,heavy=.58,skill_cool=.75,skill_cost=32,skill_damage=11,np_damage=32),
  'gil': dict(light=.27,heavy=.52,skill_cool=.65,skill_cost=28,skill_damage=6,np_damage=32),
  'iskandar':dict(light=.32,heavy=.60,skill_cool=.95,skill_cost=30,skill_damage=22,np_damage=34),
+ 'berserker':dict(light=.38,heavy=.70,skill_cool=1.15,skill_cost=32,skill_damage=24,np_damage=0),
  'medusa':dict(light=.25,heavy=.48,skill_cool=.65,skill_cost=24,skill_damage=14,np_damage=32),
 }
 
@@ -56,7 +58,7 @@ def bot_input(r,p,enemy,dt,rng=None):
    approaching=(p['x']-shot['x'])*shot.get('face',1)>=-30
   else:approaching=(p['x']-shot['x'])*shot.get('v',0)>=0 and abs(p['x']-shot['x'])<160+abs(shot.get('v',0))*(cfg['reaction']+.12)
   if approaching and abs(shot.get('y',120)-(p['y']+120))<180:danger=True;ultimate|=ult
- danger|=enemy['action'] in ('light','heavy','royal_charge') and dist<CHARS[enemy['char']]['reach']+65
+ danger|=enemy['action'] in ('light','heavy','royal_charge','axe_slam') and dist<CHARS[enemy['char']]['reach']+65
  if cfg['heal'] and p['seals']>0 and p['hp']<p.get('maxHp',100)*.32:
   keys=['seal']
  elif danger and rng.random()<cfg['defense']:
@@ -64,13 +66,13 @@ def bot_input(r,p,enemy,dt,rng=None):
   if ultimate and cfg['heal'] and p['seals']>0 and p['hp']<p.get('maxHp',100)*.55:keys=['seal']
   elif p['mana']>=6 and p['y']==0:keys=['guard']
   elif not ultimate and p['mana']>=18:keys=[away,'dash']
- elif p['np']>=100 and dist<850 and ground and rng.random()<cfg['accuracy']:
+ elif p['np']>=100 and dist<850 and ground and (p['char']!='berserker' or (p['hp']<p.get('maxHp',100)*.7 and p.get('godTime',0)<=0)) and rng.random()<cfg['accuracy']:
   keys=['np']
  elif dist<ch['reach']-8 and ground and rng.random()<cfg['accuracy']:
   keys=['heavy' if p['mana']>=24 and enemy['action']=='guard' else 'light']
  else:
   can_skill=p['mana']>=combat['skill_cost']+5 and ground
-  skill_range=320 if p['char']=='iskandar' else 510 if p['char']=='medusa' else 800
+  skill_range=245 if p['char']=='berserker' else 320 if p['char']=='iskandar' else 510 if p['char']=='medusa' else 800
   if can_skill and 130<dist<skill_range and rng.random()<cfg['accuracy']:
    keys=['skill']
   else:
@@ -96,7 +98,7 @@ def validate_settings(data):
  return result
 
 def character_catalog():
- return {'characters':{k:{**v,**COMBAT[k], 'hp':100,'mana':100,'manaRegen':11,'heavyDamage':v['damage']*1.7,'heavyCost':12,'heavyReach':v['reach']+30,'skillWindup':{'saber':.24,'archer':.9,'lancer':.3,'gil':0,'iskandar':.32,'medusa':.25}[k],'skillVelocity':{'saber':820,'archer':1150,'lancer':1000,'gil':670,'iskandar':560,'medusa':950}[k],'skillHits':3 if k=='gil' else 1,'npHits':12 if k=='gil' else 1,'npDuration':NP_TITLE_DURATION+NP_DURATION[k],'dashCost':18,'dashDistance':145,'dashInv':.17,'dashCooldown':.25,'guardReduction':82,'guardCost':6,'sealCount':3,'sealHeal':28} for k,v in CHARS.items()}}
+ return {'characters':{k:{**v,**COMBAT[k], 'hp':100,'mana':100,'manaRegen':11,'heavyDamage':v['damage']*1.7,'heavyCost':12,'heavyReach':v['reach']+30,'skillWindup':{'saber':.24,'archer':.9,'lancer':.3,'gil':0,'iskandar':.32,'medusa':.25,'berserker':.48}[k],'skillVelocity':{'saber':820,'archer':1150,'lancer':1000,'gil':670,'iskandar':560,'medusa':950,'berserker':0}[k],'skillHits':3 if k=='gil' else 1,'npHits':0 if k=='berserker' else 12 if k=='gil' else 1,'npEffect':'체력 12% 회복 · 6초간 피해 35% 감소 · 효과 중 치명타를 받으면 체력 20%로 재기(라운드당 1회)' if k=='berserker' else '공격형 보구','npDuration':NP_TITLE_DURATION+NP_DURATION[k],'dashCost':18,'dashDistance':145,'dashInv':.17,'dashCooldown':.25,'guardReduction':82,'guardCost':6,'sealCount':3,'sealHeal':28} for k,v in CHARS.items()}}
 
 def begin_draft(r):
  first=secrets.randbelow(2)
@@ -119,7 +121,7 @@ def setup(r):
  rule=settings(r)
  for i,p in enumerate(r['players']):
   p.pop('_ai',None)
-  p.update(x=340+i*600,y=0,vy=0,hp=rule['hp'],maxHp=rule['hp'],attackSpeed=rule['attackSpeed'],mana=100,np=0,cool=0,stun=0,inv=0,dashInv=0,action='idle',anim=0,animMax=0,moving=False,keys=[],prev=[],queued=[],face=1 if i==0 else -1)
+  p.update(x=340+i*600,y=0,vy=0,hp=rule['hp'],maxHp=rule['hp'],godTime=0,godReady=False,reviveUsed=False,attackSpeed=rule['attackSpeed'],mana=100,np=0,cool=0,stun=0,inv=0,dashInv=0,action='idle',anim=0,animMax=0,moving=False,keys=[],prev=[],queued=[],face=1 if i==0 else -1)
  r.update(phase='countdown',delay=2.5,clock=90,shots=[],fx=[],banner='ROUND '+str(r['round']))
  if r.get('training'):
   for p in r['players']:p.update(np=100,mana=100)
@@ -141,9 +143,13 @@ def hit(r,a,b,damage,knock=35,ultimate=False):
  blocked='guard' in b['keys'] and b['y']==0 and b['stun']<=0 and b['cool']<=0 and b['mana']>=6
  if blocked:b['mana']-=6
  damage*=settings(r)['attack']
- actual=damage*(.18 if blocked else 1)
+ actual=damage*(.18 if blocked else 1)*(.65 if b.get('godTime',0)>0 else 1)
  if b.get('dummy'):b['damageTaken']=round(b.get('damageTaken',0)+actual,2);b['lastDamage']=round(actual,2)
- else:b['hp']=max(0,b['hp']-actual)
+ else:
+  b['hp']=max(0,b['hp']-actual)
+  if b['hp']==0 and b.get('godTime',0)>0 and b.get('godReady') and not b.get('reviveUsed'):
+   b.update(hp=b.get('maxHp',100)*.2,godReady=False,reviveUsed=True,inv=.6)
+   r['fx'].append(dict(x=b['x'],y=120,life=.7,color='#e6b87c',kind='rebirth'))
  b['stun']=.08 if blocked else .21
  if not b.get('dummy'):b['x']=max(55,min(1225,b['x']+a['face']*knock))
  a['np']=min(100,a['np']+damage*.65);b['np']=min(100,b['np']+damage*.5)
@@ -154,7 +160,10 @@ def release_np(r,scene):
  ps=r['players']
  p=ps[scene['owner']];ch=CHARS[p['char']]
  p.update(action='np_release',anim=1.1,animMax=1.1,cool=1.1)
- if p['char']=='saber':
+ if p['char']=='berserker':
+  p.update(action='god_hand',anim=.65,animMax=.65,cool=.65,godTime=6.0,godReady=not p.get('reviveUsed',False),hp=min(p.get('maxHp',100),p['hp']+p.get('maxHp',100)*.12))
+  r['fx'].append(dict(x=p['x'],y=120,life=.7,color='#e6b87c',kind='rebirth'))
+ elif p['char']=='saber':
   p.update(y=0,vy=0,face=scene['face'],anim=1.4,animMax=1.4,cool=1.4)
   r['shots'].append(dict(x=p['x'],y=0,v=0,face=scene['face'],owner=scene['owner'],damage=COMBAT['saber']['np_damage'],life=1.4,radius=0,kind='greatslash',delay=.48,elapsed=0,hit=False,reach=780))
  elif p['char'] in ('iskandar','medusa'):
@@ -216,9 +225,10 @@ def tick(r,dt,now):
   if p['bot']:p['keys']=bot_input(r,p,enemy,dt)
   elif now-p['last']>.4:p['keys']=[]
   ks=set(p['keys']);pressed=(ks-set(p['prev']))|set(p['queued']);p['queued']=[];p['prev']=list(ks)
-  beam=next((s for s in r['shots'] if s['owner']==i and (s['kind'] in ('ea_beam','greatslash','army_charge','pegasus_charge','royal_charge') or (s['kind'] in ('caladbolg','strike_air','spear_throw','chain_throw') and s['delay']>0))),None)
+  beam=next((s for s in r['shots'] if s['owner']==i and (s['kind'] in ('ea_beam','greatslash','army_charge','pegasus_charge','royal_charge','axe_slam') or (s['kind'] in ('caladbolg','strike_air','spear_throw','chain_throw') and s['delay']>0))),None)
   p['face']=beam['face'] if beam else (1 if enemy['x']>=p['x'] else -1)
-  for k in ('cool','stun','inv','dashInv','anim'):p[k]=max(0,p.get(k,0)-dt)
+  for k in ('cool','stun','inv','dashInv','anim','godTime'):p[k]=max(0,p.get(k,0)-dt)
+  if p.get('godTime',0)<=0:p['godReady']=False
   p['mana']=min(100,p['mana']+dt*11)
   if p['anim']==0:p['action']='guard' if 'guard' in ks else 'idle'
   p['vy']-=1600*dt;p['y']=max(0,p['y']+p['vy']*dt)
@@ -243,6 +253,10 @@ def tick(r,dt,now):
    return
   elif 'skill' in pressed and p['mana']>=combat['skill_cost']:
    p['mana']-=combat['skill_cost'];p['cool']=combat['skill_cool'];p['anim']=p['animMax']=.5/rate;p['action']='skill'
+   if p['char']=='berserker':
+    p.update(action='axe_slam',anim=combat['skill_cool'],animMax=combat['skill_cool'],moving=False)
+    r['shots'].append(dict(x=p['x'],y=p['y'],v=0,face=p['face'],owner=i,damage=combat['skill_damage'],life=.30,kind='axe_slam',delay=.48/rate,hit=False,elapsed=0))
+    continue
    if p['char']=='archer':
     p.update(action='caladbolg',anim=combat['skill_cool'],animMax=combat['skill_cool'],moving=False)
     r['shots'].append(dict(x=p['x']+p['face']*113,y=p['y']+162,v=p['face']*1150,face=p['face'],owner=i,damage=combat['skill_damage'],life=1.4,radius=24,color='#ffbb79',kind='caladbolg',delay=.9/rate))
@@ -273,6 +287,19 @@ def tick(r,dt,now):
   mid=max(88,min(1192,mid));a['x']=mid-d*33;b['x']=mid+d*33
  shots=[]
  for s in r['shots']:
+  if s['kind']=='axe_slam':
+   a=ps[s['owner']];b=ps[1-s['owner']]
+   if s['delay']>0 and a['stun']>0:
+    a.update(action='idle',anim=0);continue
+   active=max(0,dt-s['delay']);s['delay']=max(0,s['delay']-dt)
+   if active<=0:shots.append(s);continue
+   if not s['hit']:
+    s['hit']=True
+    if -27<=(b['x']-a['x'])*s['face']<=245 and abs(b['y']-a['y'])<100:hit(r,a,b,s['damage'],65)
+    r['fx'].append(dict(x=a['x']+s['face']*185,y=a['y'],life=.35,color='#e6b87c',kind='greatimpact'))
+   s['elapsed']+=active;s['life']-=active
+   if s['life']>0:shots.append(s)
+   continue
   if s['kind'] in ('army_charge','pegasus_charge','royal_charge','chain_throw'):
    a=ps[s['owner']];b=ps[1-s['owner']];ultimate=s['kind'] in ('army_charge','pegasus_charge');chain=s['kind']=='chain_throw'
    if not ultimate and a['stun']>0:
