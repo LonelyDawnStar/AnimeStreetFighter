@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: grail-duel
+    runtime: python
+    plan: free
+    region: singapore
+    buildCommand: pip install -r requirements.txt
+    startCommand: python server.py --host 0.0.0.0
+    healthCheckPath: /health
+    autoDeployTrigger: off
+    envVars:
+      - key: PYTHONUNBUFFERED
+        value: "1"
