@@ -90,17 +90,41 @@ window.addEventListener('keyup',e=>{setInputSource('keyboard:'+e.code,[])});
 function clearKeys(){window.arcadeControls?.reset();inputSources.clear();keys.clear();pending.clear();send({type:'input',keys:[]})}
 window.addEventListener('blur',clearKeys);document.addEventListener('visibilitychange',()=>{if(document.hidden)clearKeys()});
 $('sound').onclick=()=>{sound=!sound;if(sound){audio??=new (window.AudioContext||window.webkitAudioContext)();audio.resume()}$('sound').textContent=sound?'소리 끄기':'소리 켜기'};function beep(){if(!sound||!audio)return;const o=audio.createOscillator(),g=audio.createGain();o.type='triangle';o.frequency.setValueAtTime(170,audio.currentTime);o.frequency.exponentialRampToValueAtTime(45,audio.currentTime+.09);g.gain.setValueAtTime(.12,audio.currentTime);g.gain.exponentialRampToValueAtTime(.001,audio.currentTime+.12);o.connect(g);g.connect(audio.destination);o.start();o.stop(audio.currentTime+.13)}
+// Native-resolution HUD: text never passes through the 640px pixel-art buffer.
+const CrispHUD=(()=>{
+ const style=document.createElement('style');style.textContent=`
+ .crisp-hud{position:absolute;inset:0 0 auto;z-index:1;pointer-events:none;font-family:Arial,'Malgun Gothic','Apple SD Gothic Neo',sans-serif;color:#fff;background:#081322f5;border-bottom:3px solid #566780;padding:12px 16px;display:grid;grid-template-columns:minmax(0,1fr) 86px minmax(0,1fr);gap:10px 20px;font-variant-numeric:tabular-nums;text-shadow:0 1px #000}
+ .crisp-side{min-width:0;--accent:#a0f0d9}.crisp-side.enemy{--accent:#ffe0a0}.crisp-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px}.crisp-name{font-size:18px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.crisp-player{font-size:13px;color:var(--accent);white-space:nowrap}.crisp-health{position:relative;height:23px;background:#40283a;border:2px solid #a7b5cb;overflow:hidden}.crisp-fill{height:100%;background:var(--accent);width:100%}.crisp-health strong{position:absolute;inset:0;text-align:center;color:#fff;background:#06122266;font-size:14px;line-height:19px;text-shadow:1px 1px 2px #000,-1px -1px 2px #000}.crisp-values{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:13px;margin-top:6px;color:#d9e6fa}.crisp-np.ready{color:#ffe099;font-weight:800}.crisp-seals{color:#ffb7ce}.crisp-buff{font-size:12px;color:#d4c4ff;margin-top:4px}.crisp-center{text-align:center;align-self:start;background:#17263a;border-top:3px solid #e6cc92;padding:4px}.crisp-round{font-size:12px;color:#d5dfed}.crisp-clock{font-size:32px;line-height:1.15;font-weight:800}.crisp-score{font-size:15px;color:#ffe2a7;margin-top:3px}.crisp-training{grid-column:1/-1;text-align:center;background:#14243c;border:2px solid #778aab;padding:5px 10px;font-size:14px;color:#fff1bd}.crisp-training b{color:#fff;font-size:16px;margin:0 4px}
+ @media(max-width:850px),(pointer:coarse){.crisp-hud{padding:6px 8px;grid-template-columns:minmax(0,1fr) 54px minmax(0,1fr);gap:6px 8px}.crisp-name{font-size:13px}.crisp-player{font-size:11px}.crisp-heading{gap:4px;margin-bottom:4px}.crisp-health{height:20px}.crisp-health strong{font-size:12px;line-height:16px}.crisp-values{font-size:12px;gap:2px 6px;margin-top:3px}.crisp-clock{font-size:24px}.crisp-round{font-size:11px}.crisp-score{font-size:12px}.crisp-buff{font-size:11px}.crisp-training{font-size:12px;padding:3px 5px}.crisp-training b{font-size:13px}.crisp-player{display:none}}
+ `;document.head.append(style);
+ const root=document.createElement('div');root.className='crisp-hud';root.hidden=true;root.setAttribute('aria-label','경기 상태');$('battle').parentElement.append(root);
+ const node=(tag,cls,parent)=>{const n=document.createElement(tag);n.className=cls;parent.append(n);return n};
+ const sides=[];
+ for(let i=0;i<3;i++){
+  if(i===1){const middle=node('div','crisp-center',root);node('div','crisp-round',middle);node('div','crisp-clock',middle);node('div','crisp-score',middle);continue}
+  const side=node('section','crisp-side',root),head=node('div','crisp-heading',side),name=node('strong','crisp-name',head),player=node('span','crisp-player',head),bar=node('div','crisp-health',side),fill=node('div','crisp-fill',bar),hp=node('strong','',bar),values=node('div','crisp-values',side),mana=node('span','',values),np=node('span','crisp-np',values),seals=node('span','crisp-seals',values),buff=node('div','crisp-buff',side);sides.push({side,name,player,fill,hp,mana,np,seals,buff});
+ }
+ const round=root.querySelector('.crisp-round'),clock=root.querySelector('.crisp-clock'),score=root.querySelector('.crisp-score'),training=node('div','crisp-training',root);
+ const set=(el,value)=>{if(el.textContent!==value)el.textContent=value};
+ function update(s,slot){
+  root.hidden=!s||!['fight','countdown'].includes(s.phase)||!!s.cinematic||!!s.paused||!!s.closed;if(root.hidden)return;
+  sides.forEach((v,i)=>{const p=s.players[i];v.side.hidden=!p;if(!p)return;v.side.classList.toggle('enemy',i!==slot);set(v.name,'P'+(i+1)+' · '+defs[p.char].name);set(v.player,'P'+(i+1)+(i===slot?' · 나':' · 상대'));set(v.hp,Math.ceil(p.hp)+' / '+Math.ceil(p.maxHp||100)+' HP');const width=(Math.max(0,Math.min(1,p.hp/(p.maxHp||100)))*100).toFixed(1)+'%';if(v.fill.style.width!==width)v.fill.style.width=width;set(v.mana,'마나 '+Math.floor(p.mana));set(v.np,p.np>=100?'보구 준비 [U]':'보구 '+Math.floor(p.np)+'%');v.np.classList.toggle('ready',p.np>=100);set(v.seals,'영주 '+p.seals);const status=[];if(p.shield>0)status.push('보호막 '+Math.ceil(p.shield));if(p.char==='berserker'&&p.godTime>0)status.push('갓 핸드 '+p.godTime.toFixed(1)+'초');set(v.buff,status.join(' · '));v.buff.hidden=!status.length});
+  set(round,'R '+(s.round||1));set(clock,s.training?'∞':String(Math.ceil(s.clock)));set(score,(s.score||[0,0]).join(' : '));training.hidden=!s.training;if(s.training){const d=s.players.find(p=>p.dummy),fmt=n=>Number(n||0).toFixed(1);set(training,'연습  |  누적 피해 '+fmt(d?.damageTaken)+'  |  최근 피해 '+fmt(d?.lastDamage))}
+ }
+ return {update};
+})();
+
 const view=$('battle').getContext('2d'),buffer=document.createElement('canvas');buffer.width=640;buffer.height=330;const c=buffer.getContext('2d');
 let impactUntil=0,visualTime=0,previousRoster=0;
 function text(s,x,y,size=14,color='#fff',align='left'){c.font=`bold ${size}px monospace`;c.fillStyle=color;c.textAlign=align;c.fillText(s,x,y)}
-function draw(now){const dt=Math.min(.05,(now-lastFrame)/1000||.016);lastFrame=now;const realTime=now/1000;
+function draw(now){CrispHUD.update(state,session?.slot);const dt=Math.min(.05,(now-lastFrame)/1000||.016);lastFrame=now;const realTime=now/1000;
  if(!state||(!state.paused&&!state.cinematic))visualTime+=dt;
  if(GrailArt.ready&&now-previousRoster>140&&!state){drawRoster(realTime);previousRoster=now}
  if(state&&GrailArt.ready){const s=state,t=visualTime;c.setTransform(.5,0,0,.5,0,0);c.imageSmoothingEnabled=false;
   c.save();if(now<impactUntil&&!s.paused)c.translate(Math.round(Math.sin(now*1.7)*4)*2,0);
   GrailArt.background(c,t);
   s.players.forEach((p,i)=>{const old=smoothed[i]||{x:p.x,y:p.y},a=1-Math.exp(-25*dt);old.x+=(p.x-old.x)*a;old.y=p.y<=0?0:old.y+(p.y-old.y)*a;smoothed[i]=old;fighter(c,{...p,...old,airborne:p.y>0||p.vy>0},t)});
-  GrailArt.effects(c,s,t);c.restore();GrailArt.hud(c,s,session.slot);
+  GrailArt.effects(c,s,t);c.restore();
   if(s.phase==='countdown'){c.fillStyle='#06112e9a';c.fillRect(0,235,1280,100);text(s.phase==='countdown'?String(Math.ceil(s.delay)):s.banner,640,292,54,'#fff1c3','center');text(s.phase==='countdown'?'ROUND '+s.round:'',640,327,15,'#e6e7ef','center')}
   text('F U Y U K I  /  M O O N L I T  R I V E R S I D E',640,641,10,'#d3d9ef','center');
   NobleCinema.draw(c,s);ResultCinema.draw(c,s,session.slot);view.imageSmoothingEnabled=false;view.clearRect(0,0,1280,660);view.drawImage(buffer,0,0,1280,660);
@@ -138,4 +162,5 @@ async function refreshRooms(){
 }
 $('refreshRooms').onclick=refreshRooms;$('onlyOpen').onchange=renderRooms;
 refreshRooms();
+
 
