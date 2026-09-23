@@ -117,10 +117,10 @@ def player(char, bot=False):
  return dict(token=secrets.token_urlsafe(24),char=char,bot=bot,ready=bot,last=time.monotonic(),keys=[],prev=[],queued=[],x=0,y=0,vy=0,hp=100,maxHp=100,attackSpeed=1.0,mana=100,np=0,seals=3,cool=0,stun=0,inv=0,dashInv=0,action='idle',anim=0,animMax=0,moving=False,face=1)
 
 def setup(r):
- r.pop('cinematic',None)
+ r.pop('cinematic',None);r.pop('result',None)
  rule=settings(r)
  for i,p in enumerate(r['players']):
-  p.pop('_ai',None)
+  p.pop('_ai',None);p.pop('rematch',None)
   p.update(x=340+i*600,y=0,vy=0,hp=rule['hp'],maxHp=rule['hp'],godTime=0,godReady=False,reviveUsed=False,attackSpeed=rule['attackSpeed'],mana=100,np=0,cool=0,stun=0,inv=0,dashInv=0,action='idle',anim=0,animMax=0,moving=False,keys=[],prev=[],queued=[],face=1 if i==0 else -1)
  r.update(phase='countdown',delay=2.5,clock=90,shots=[],fx=[],banner='ROUND '+str(r['round']))
  if r.get('training'):
@@ -190,6 +190,8 @@ def tick(r,dt,now):
  if r['paused']:
   for p in ps:p.update(keys=[],queued=[],prev=[])
   return
+ if r.get('result') and r['phase'] in ('between','ended'):
+  result=r['result'];result['elapsed']=min(result['duration'],result['elapsed']+dt)
  if r['phase']=='coin':
   r['delay']=max(0,r['delay']-dt)
   if r['delay']==0:r.update(phase='draft',banner='서번트 선택')
@@ -382,7 +384,10 @@ def tick(r,dt,now):
   winner=0 if ps[0]['hp']>ps[1]['hp'] else 1 if ps[1]['hp']>ps[0]['hp'] else None
   if winner is not None:r['score'][winner]+=1
   r['banner']='DRAW' if winner is None else CHARS[ps[winner]['char']]['name']+' WIN'
-  r.update(phase='ended' if max(r['score'])>=settings(r)['bestOf']//2+1 else 'between',delay=2.6,winner=winner)
+  final=max(r['score'])>=settings(r)['bestOf']//2+1
+  duration=4.0 if final else 3.2
+  r.update(phase='ended' if final else 'between',delay=duration,winner=winner,shots=[],fx=[],result=dict(winner=winner,final=final,elapsed=0.0,duration=duration,round=r['round'],score=list(r['score'])))
+  for p in ps:p.update(keys=[],prev=[],queued=[],moving=False,action='idle',anim=0,rematch=p['bot'])
   if r['phase']=='ended':
    for p in ps:p['ready']=p['bot']
 
@@ -457,15 +462,25 @@ class Handler(BaseHTTPRequestHandler):
    return {'ok':True}
   if action=='/api/settings':
    if r['players'].index(p)!=r.get('host',0):raise ValueError('방장만 설정을 변경할 수 있습니다.')
-   if r['phase'] not in ('waiting','ended') or r.get('closed'):raise ValueError('대기 중에만 변경할 수 있습니다.')
+   if r['phase']!='waiting' or r.get('closed'):raise ValueError('대기 중에만 변경할 수 있습니다.')
    r['settings']=validate_settings(d.get('settings'))
    for q in r['players']:q['ready']=q['bot']
    return snapshot(r)
   if action=='/api/pick':
    if r.get('closed'):raise ValueError('종료된 방입니다.')
    lock_pick(r,r['players'].index(p),d.get('char'));return snapshot(r)
+  if action=='/api/rematch':
+   result=r.get('result')
+   if r.get('closed') or r.get('paused') or r['phase']!='ended' or not result or result['elapsed']<result['duration']:raise ValueError('최종 결과 연출이 끝난 뒤 재대결을 신청하세요.')
+   p['rematch']=True
+   if all(q.get('rematch') for q in r['players']):
+    r.update(phase='waiting',score=[0,0],round=1,winner=None,banner='재대결 준비',shots=[],fx=[])
+    r.pop('result',None);r.pop('draft',None)
+    for q in r['players']:q.update(ready=q['bot'],rematch=False,keys=[],prev=[],queued=[],action='idle',anim=0)
+   return snapshot(r)
+  if action=='/api/ready' and r['phase']!='waiting':raise ValueError('대기실에서 준비해 주세요.')
   if action=='/api/ready' and r.get('closed'):raise ValueError('로비에서 새 방을 만들어 주세요.')
-  if action=='/api/ready' and r['phase'] in ('waiting','ended'):
+  if action=='/api/ready' and r['phase']=='waiting':
    p['ready']=True
    if len(r['players'])==2 and all(p['ready'] and (p['bot'] or time.monotonic()-p['last']<1.5) for p in r['players']):
     r.update(score=[0,0],round=1)

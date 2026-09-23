@@ -26,7 +26,8 @@ function forget(){try{sessionStorage.removeItem('grail-session')}catch{}}
 function stopTransport(){clearTimeout(retry);clearInterval(inputTimer);clearInterval(pingTimer);if(socket){socket.onclose=null;socket.close();socket=null}}
 function send(msg){if(socket?.readyState===WebSocket.OPEN){socket.send(JSON.stringify(msg));return true}return false}
 $('ready').onclick=()=>{if(!send({type:'ready'}))error('서버에 다시 연결하는 중입니다.')};
-$('leave').onclick=()=>{if(session)api('leave',session).finally(()=>refreshRooms()).catch(()=>{});NobleCinema.draw(c,{});session=null;state=null;generation++;stopTransport();forget();clearKeys();$('lobby').hidden=false;$('game').hidden=true;$('connection').textContent='LOBBY';history.replaceState(null,'',location.pathname)};
+function leaveRoom(){window.matchControls?.closeSettings();document.body.classList.remove('pregame','result-active');if(session)api('leave',session).finally(()=>refreshRooms()).catch(()=>{});NobleCinema.draw(c,{});session=null;state=null;generation++;stopTransport();forget();clearKeys();$('lobby').hidden=false;$('game').hidden=true;$('connection').textContent='LOBBY';history.replaceState(null,'',location.pathname)}
+$('leave').onclick=leaveRoom;
 function applyState(s){state=s;updateUI();if(lastHealth&&s.players.some((p,i)=>p.hp<lastHealth[i])){beep();impactUntil=performance.now()+110;}lastHealth=s.players.map(p=>p.hp)}
 function connect(gen){
  if(!session||gen!==generation)return;
@@ -63,7 +64,7 @@ function setInputSource(source,values){
  for(const key of next)if(!keys.has(key))pending.add(key);
  keys.clear();for(const key of next)keys.add(key);
 }
-window.addEventListener('keydown',e=>{if(!session||!map[e.code]||['INPUT','TEXTAREA'].includes(e.target.tagName))return;e.preventDefault();setInputSource('keyboard:'+e.code,[map[e.code]])});
+window.addEventListener('keydown',e=>{if(!session||state?.phase!=='fight'||$('roomSettings').open||!map[e.code]||['INPUT','TEXTAREA','SELECT','BUTTON'].includes(e.target.tagName))return;e.preventDefault();setInputSource('keyboard:'+e.code,[map[e.code]])});
 window.addEventListener('keyup',e=>{setInputSource('keyboard:'+e.code,[])});
 function clearKeys(){window.arcadeControls?.reset();inputSources.clear();keys.clear();pending.clear();send({type:'input',keys:[]})}
 window.addEventListener('blur',clearKeys);document.addEventListener('visibilitychange',()=>{if(document.hidden)clearKeys()});
@@ -79,9 +80,9 @@ function draw(now){const dt=Math.min(.05,(now-lastFrame)/1000||.016);lastFrame=n
   GrailArt.background(c,t);
   s.players.forEach((p,i)=>{const old=smoothed[i]||{x:p.x,y:p.y},a=1-Math.exp(-25*dt);old.x+=(p.x-old.x)*a;old.y=p.y<=0?0:old.y+(p.y-old.y)*a;smoothed[i]=old;fighter(c,{...p,...old,airborne:p.y>0||p.vy>0},t)});
   GrailArt.effects(c,s,t);c.restore();GrailArt.hud(c,s,session.slot);
-  if(s.phase==='countdown'||s.phase==='between'){c.fillStyle='#06112e9a';c.fillRect(0,235,1280,100);text(s.phase==='countdown'?String(Math.ceil(s.delay)):s.banner,640,292,54,'#fff1c3','center');text(s.phase==='countdown'?'ROUND '+s.round:'',640,327,15,'#e6e7ef','center')}
+  if(s.phase==='countdown'){c.fillStyle='#06112e9a';c.fillRect(0,235,1280,100);text(s.phase==='countdown'?String(Math.ceil(s.delay)):s.banner,640,292,54,'#fff1c3','center');text(s.phase==='countdown'?'ROUND '+s.round:'',640,327,15,'#e6e7ef','center')}
   text('F U Y U K I  /  M O O N L I T  R I V E R S I D E',640,641,10,'#d3d9ef','center');
-  NobleCinema.draw(c,s);view.imageSmoothingEnabled=false;view.clearRect(0,0,1280,660);view.drawImage(buffer,0,0,1280,660);
+  NobleCinema.draw(c,s);ResultCinema.draw(c,s,session.slot);view.imageSmoothingEnabled=false;view.clearRect(0,0,1280,660);view.drawImage(buffer,0,0,1280,660);
  }
  requestAnimationFrame(draw)
 }requestAnimationFrame(draw);

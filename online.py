@@ -33,7 +33,7 @@ async def http_api(request):
 
 STATIC_FILES={'/':'index.html',**{'/'+name:name for name in (
  'app.js','style.css','graphics.js','motions.html','motions.js','royal.css',
- 'royal.js','mobile.css','mobile.js','match.css','match.js','gil-cinema.js','lancer-cinema.js','emiya-cinema.js','cinematic.js','rider-cinema.js','original-cinema.js','ultimate.html')}}
+ 'royal.js','mobile.css','mobile.js','match.css','match.js','gil-cinema.js','lancer-cinema.js','emiya-cinema.js','cinematic.js','rider-cinema.js','result.js','original-cinema.js','ultimate.html')}}
 
 async def static(request):
  name=STATIC_FILES.get(request.path)
@@ -45,7 +45,7 @@ async def catalog(request):return web.json_response(game.character_catalog())
 async def rooms(request):
  with game.LOCK:return web.json_response(game.public_rooms())
 
-async def health(request):return web.json_response({'status':'ok','version':'0.33'})
+async def health(request):return web.json_response({'status':'ok','version':'0.34'})
 
 async def websocket(request):
  ws=web.WebSocketResponse(heartbeat=10,max_msg_size=4096)
@@ -86,8 +86,8 @@ async def websocket(request):
    kind=d.get('type')
    if kind=='input':invoke('input',{**auth,'keys':d.get('keys',[])})
    elif kind=='ready':invoke('ready',auth)
-   elif kind in ('settings','pick'):
-    try:invoke(kind,{**auth,**({'settings':d.get('settings')} if kind=='settings' else {'char':d.get('char')})})
+   elif kind in ('settings','pick','rematch'):
+    try:invoke(kind,{**auth,**({'settings':d.get('settings')} if kind=='settings' else {'char':d.get('char')} if kind=='pick' else {})})
     except ValueError as e:await ws.send_json({'type':'notice','message':str(e)})
    elif kind=='ping':await ws.send_json({'type':'pong','stamp':d.get('stamp')})
    else:raise ValueError('알 수 없는 메시지입니다.')
