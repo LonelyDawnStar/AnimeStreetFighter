@@ -119,5 +119,38 @@ const AcheronArt=(()=>{
   }
   g.fillStyle='#04040d';g.fillRect(0,0,1280,32);g.fillRect(0,624,1280,36);g.restore();
  }
- return {install,frame,effects,cinema,motion,prepare,get frames(){return frames},get white(){return white}};
+ // 2.6s standalone follow-up, using the same source sprites as gameplay.
+ function finisher(g,time){
+  const t=Math.max(0,Math.min(2.6,time));g.save();
+  g.fillStyle='#07070c';g.fillRect(0,0,1280,660);
+  const h=480;rect(g,0,h,1280,2,'#72717e');
+  for(let i=0;i<48;i++){const y=(i*89+t*125)%660;rect(g,(i*173)%1280,y,2,12,'#98939d44')}
+  // A dim empty circle and silver water become a red horizon at the cut.
+  g.strokeStyle=t<1.2?'#b6b2be':'#e23967';g.lineWidth=2;g.beginPath();g.arc(940,245,119,0,Math.PI*2);g.stroke();
+  for(let i=0;i<25;i++)rect(g,880-i*3+Math.sin(t+i)*12,h+12+i*5,90+i*6,2,t<1.2?'#45434e':'#6f233c');
+  if(t<.7){
+   const q=ease(t/.7);body(g,13,460+q*18,620,2.05);
+   g.textAlign='left';g.fillStyle='#eee4ec';g.font='bold 26px sans-serif';g.fillText('황천의 귀환',785,405);
+   g.font='12px monospace';g.fillStyle='#b89aa9';g.fillText('STYGIAN RESURGE',787,432);
+   for(let i=0;i<3;i++)rect(g,792+i*32,455,17,2,'#db496f');
+  }else if(t<1.2){
+   const q=(t-.7)/.5;body(g,q<.4?13:14,480,596,1.8);
+   g.save();g.globalAlpha=q;rect(g,0,330,1280,2,'#ed4879');g.restore();
+   for(let i=0;i<28;i++)rect(g,500+(i-14)*(1-q)*28,335+(i%5-2)*(1-q)*20,4,2,'#e595ac');
+  }else if(t<1.85){
+   const q=(t-1.2)/.65;
+   // The cut separates two abstract planes, never the opponent's body.
+   g.save();g.translate(640,330);g.rotate(-.2);g.fillStyle='#331020';g.beginPath();g.moveTo(-900,-330);g.lineTo(900,-330);g.lineTo(900,-q*44);g.lineTo(-900,-q*44);g.closePath();g.fill();
+   rect(g,-900,-2,1800,4,'#ffe7ee');rect(g,-900,3,1800,7,'#ed2f69');g.restore();
+   body(g,15,500+ease(q)*235,592,1.8);
+   for(let i=0;i<26;i++){const x=650+(i*79)%650+q*100,y=290+(i*47)%210;g.save();g.translate(x,y);g.rotate(-.2);rect(g,0,0,18+i%4*9,2,'#b94265');g.restore()}
+   if(q<.09){g.globalAlpha=.18;g.fillStyle='#f3e7ec';g.fillRect(0,32,1280,592);g.globalAlpha=1}
+  }else{
+   const q=(t-1.85)/.75;body(g,q<.42?15:12,735-ease(q)*28,592,1.8);
+   g.save();g.globalAlpha=1-q;streak(g,.4+q*.6,-.2);g.restore();
+   for(let i=0;i<18;i++){g.save();g.translate((i*137+t*30)%1280,460+q*150+i%4*20);g.rotate(i+q);rect(g,-4,-2,8,4,'#b44668');g.restore()}
+  }
+  rect(g,0,0,1280,32,'#05050a');rect(g,0,624,1280,36,'#05050a');g.restore();
+ }
+ return {install,frame,effects,cinema,finisher,motion,prepare,get frames(){return frames},get white(){return white}};
 })();

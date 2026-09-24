@@ -350,7 +350,11 @@ def tick(r,dt,now):
    heavy='heavy' in pressed and p['mana']>=12
    if heavy:p['mana']-=12
    p['cool']=combat['heavy'] if heavy else combat['light'];p['anim']=p['animMax']=p['cool'];p['action']='heavy' if heavy else 'light'
-   if acheron.basic(r,i,heavy,ch['reach']+(30 if heavy else 0),hit):continue
+   if acheron.basic(r,i,heavy,ch['reach']+(30 if heavy else 0),hit):
+    if r.get('cinematic'):
+     for other in ps:other.update(queued=[],prev=list(other['keys']))
+     return
+    continue
    if abs(enemy['x']-p['x'])<ch['reach']+(30 if heavy else 0) and abs(enemy['y']-p['y'])<85:hit(r,p,enemy,ch['damage']*(1.7*(1+aug.value(p,'heavyDamage')) if heavy else 1),60 if heavy else 25)
   if p['action']!='run':p['moving']=False
  # Prevent overlapping grounded fighters.

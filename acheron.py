@@ -4,6 +4,8 @@ import augments as aug
 def active(p):return p.get('rainCharges',0)>0 or p.get('rainFinishing',False)
 def reset(p):p.update(rainCharges=0,rainHits=0,rainStep=0,rainFinishing=False)
 def release(r,scene):
+ if scene.get('variant')=='stygian':
+  r.pop('cinematic',None);finish(r,scene['owner']);return
  p=r['players'][scene['owner']]
  p.update(rainCharges=3,rainHits=0,rainStep=0,rainFinishing=False,action='acheron_awaken',anim=.5,animMax=.5,cool=.5,moving=False)
  r.pop('cinematic',None)
@@ -19,9 +21,19 @@ def basic(r,i,heavy,reach,hit):
   connected=hit(r,p,enemy,damage,30,ultimate=True,dodgeable=True)
   if connected and not guard:p['rainHits']+=1
  if p['rainCharges']==0 and p['rainHits']==3 and enemy['hp']>0:
-  p.update(rainFinishing=True,action='acheron_finish',cool=max(p['cool'],.75),anim=.75,animMax=.75)
-  r['shots'].append(dict(kind='stygian',owner=i,x=p['x'],y=p['y']+120,face=p['face'],v=0,delay=.32,life=.42,elapsed=0,hit=False,damage=18,reach=620,radius=85))
+  p.update(rainFinishing=True,moving=False)
+  if r.get('settings',{}).get('skipCinema',False):finish(r,i)
+  else:
+   p.update(action='acheron_finish',anim=2.6,animMax=2.6,cool=2.6)
+   r['cinematic']=dict(owner=i,char='acheron',variant='stygian',face=p['face'],elapsed=0,titleDuration=0,duration=2.6,playbackRate=1)
+
  return True
+
+def finish(r,i):
+ p=r['players'][i]
+ p.update(rainFinishing=True,action='acheron_finish',cool=.75,anim=.75,animMax=.75,moving=False)
+ if not any(s['kind']=='stygian' and s['owner']==i for s in r['shots']):
+  r['shots'].append(dict(kind='stygian',owner=i,x=p['x'],y=p['y']+120,face=p['face'],v=0,delay=.32,life=.42,elapsed=0,hit=False,damage=18,reach=620,radius=85))
 
 def skill(r,i,rate):
  p=r['players'][i];p.update(action='octobolt',anim=.85/rate,animMax=.85/rate,moving=False)

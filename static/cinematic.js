@@ -5,6 +5,7 @@ const NobleCinema=(()=>{
  const durations={acheron:5.2,...OriginalCinema.durations,archer:460/60,iskandar:7.5,medusa:7};
  const ready=Promise.all([EmiyaCinema.ready,RiderCinema.ready,OriginalCinema.ready]);ready.catch(()=>{});
  function draw(g,state){const scene=state.cinematic;if(!scene)return;
+  if(scene.char==='acheron'&&scene.variant==='stygian'){AcheronArt.finisher(g,scene.elapsed);return;}
   const titleDuration=scene.char==='gojo'?1:(scene.titleDuration??1);
   if(scene.elapsed<titleDuration){
    const width=Math.min(1280,Math.floor(scene.elapsed/.45*1280/8)*8);
