@@ -140,7 +140,7 @@ function draw(now){CrispHUD.update(state,session?.slot);const dt=Math.min(.05,(n
  if(state&&GrailArt.ready){const s=state,t=visualTime;c.setTransform(.5,0,0,.5,0,0);c.imageSmoothingEnabled=false;
   c.save();if(now<impactUntil&&!s.paused)c.translate(Math.round(Math.sin(now*1.7)*4)*2,0);
   GrailArt.background(c,t);
-  s.players.forEach((p,i)=>{const old=smoothed[i]||{x:p.x,y:p.y},a=1-Math.exp(-25*dt);old.x+=(p.x-old.x)*a;old.y=p.y<=0?0:old.y+(p.y-old.y)*a;smoothed[i]=old;fighter(c,{...p,...old,airborne:p.y>0||p.vy>0},t)});
+  s.players.forEach((p,i)=>{const old=DuelMotion.advance(smoothed[i],p,dt,s.paused||!!s.cinematic||s.phase!=='fight');smoothed[i]=old;fighter(c,{...p,...old,airborne:p.y>0||p.vy>0},t)});
   GrailArt.effects(c,s,t);GojoArt.effects(c,s,t);AcheronArt.effects(c,s,t);c.restore();
   if(s.phase==='countdown'){c.fillStyle='#06112e9a';c.fillRect(0,235,1280,100);text(s.phase==='countdown'?String(Math.ceil(s.delay)):s.banner,640,292,54,'#fff1c3','center');text(s.phase==='countdown'?'ROUND '+s.round:'',640,327,15,'#e6e7ef','center')}
   text('F U Y U K I  /  M O O N L I T  R I V E R S I D E',640,641,10,'#d3d9ef','center');
@@ -179,6 +179,7 @@ async function refreshRooms(){
 }
 $('refreshRooms').onclick=refreshRooms;$('onlyOpen').onchange=renderRooms;
 refreshRooms();
+
 
 
 

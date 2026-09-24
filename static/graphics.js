@@ -114,11 +114,12 @@ const GrailArt=(()=>{
   const bf=br.map(([x,y,w,h,pivot,foot])=>({canvas:cut(berserker,x,y,w,h),pivot,foot,scale:.84}));
   art.frames.berserker={idle:[bf[0]],run:[bf[1],bf[2]],jump:[bf[3]],attack:[bf[4],bf[5],bf[6],bf[0]],guard:[bf[7]],hurt:[bf[8]],dash:[bf[9]],release:[bf[11],bf[10],bf[10],bf[11]]};
   art.portraits.berserker=portrait(bf[0],139,19,110,130);
-  GojoArt.install(art,gojoImage);AcheronArt.install(art,acheronImage,acheronAwakened);art.ready=true;return art;
+  GojoArt.install(art,gojoImage);AcheronArt.install(art,acheronImage,acheronAwakened);art.ready=true;DuelMotion.start(art);return art;
  }).catch(e=>{art.failed=true;art.error=e;return art});
  function rect(g,x,y,w,h,color){g.fillStyle=color;g.fillRect(Math.round(x),Math.round(y),Math.round(w),Math.round(h))}
  function label(g,str,x,y,size,color='#f9e4b0',align='left'){g.fillStyle=color;g.font=`bold ${size}px monospace`;g.textAlign=align;g.fillText(str,x,y)}
  function frameFor(p,t){const f=art.frames[p.char];if(!f)return null;
+  const gait=DuelMotion.frame(p);if(gait)return gait;
   if(p.char==='acheron'){const custom=AcheronArt.frame(p,t);if(custom)return custom;}
   if(p.char==='gojo'){const custom=GojoArt.frame(p,t);if(custom)return custom;}
   if(p.char==='berserker'&&p.action==='god_hand')return f.release[2];
@@ -142,14 +143,14 @@ const GrailArt=(()=>{
   if(p.action==='dash'&&f.dash)return f.dash[0];
   if((p.airborne??(p.y>0))&&f.jump)return f.jump[0];
   if(p.action==='guard'&&f.guard)return f.guard[0];
-  if(p.action==='run'&&p.moving!==false)return f.run[Math.floor(t*9)%f.run.length];
+  if(p.action==='run'&&p.moving!==false)return f.run[Math.floor((((p.gait||0)%1+1)%1)*f.run.length)%f.run.length];
   return f.idle[Math.floor(t*5)%f.idle.length];
  }
  art.fighter=(g,p,t,size=1,ground=535)=>{
   if(!art.ready)return;
   const f=frameFor(p,t);if(!f)return;
   const action=['light','heavy','skill','np'].includes(p.action),isRun=p.action==='run'&&p.moving!==false;
-  const bob=['np_release','strike_air','spear_throw','caladbolg','axe_slam','god_hand'].includes(p.action)?0:(p.airborne??(p.y>0))?0:Math.round(Math.sin(t*(isRun?16:3))*(isRun?2:1));
+  const bob=['np_release','strike_air','spear_throw','caladbolg','axe_slam','god_hand'].includes(p.action)?0:(p.airborne??(p.y>0))?0:isRun?0:Math.round(Math.sin(t*3));
   g.save();g.imageSmoothingEnabled=false;g.translate(Math.round(p.x),Math.round(ground-p.y+bob));
   g.scale((p.face||1)*size,size);const scale=f.scale||.65;
   if(p.inv>0||p.dashInv>0)g.globalAlpha=Math.floor(t*20)%2?.5:.85;
@@ -348,5 +349,6 @@ const GrailArt=(()=>{
  };
  art.frameFor=frameFor;art.unpack=unpack;return art;
 })();
+
 
 
