@@ -175,6 +175,7 @@ const GrailArt=(()=>{
   if(p.godTime>0){
    for(let j=0;j<12;j++){const a=j*Math.PI/6+t*.6;rect(g,Math.cos(a)*95,-130+Math.sin(a)*132,5,10,j===0&&p.godReady?'#fff1cd':'#dca76c99')}
   }
+  if(p.char==='acheron')AcheronArt.motion(g,p);
   draw();
   if(p.action==='caladbolg'){
    const e=Math.max(0,((p.animMax||1.15)-p.anim)*(p.attackSpeed||1)),q=Math.min(1,e/.9);
