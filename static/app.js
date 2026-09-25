@@ -133,6 +133,28 @@ const CrispHUD=(()=>{
 })();
 
 const view=$('battle').getContext('2d'),buffer=document.createElement('canvas');buffer.width=640;buffer.height=330;const c=buffer.getContext('2d');
+// A shared 4-world-pixel grid for every combat effect and cinematic.
+// Reused buffers: no canvas allocation or image loading in the render loop.
+const PixelEffects=(()=>{
+ const surface=document.createElement('canvas');surface.width=320;surface.height=165;
+ const g=surface.getContext('2d',{willReadFrequently:true});
+ const colors=new Uint8Array(256),alphas=new Uint8Array(256);
+ for(let i=0;i<256;i++){colors[i]=Math.round(i/17)*17;alphas[i]=i<16?0:Math.min(255,Math.round(i/32)*32)}
+ function draw(target,paint){
+  g.setTransform(1,0,0,1,0,0);g.globalAlpha=1;g.globalCompositeOperation='source-over';g.clearRect(0,0,320,165);
+  g.save();g.scale(.25,.25);g.imageSmoothingEnabled=false;paint(g);g.restore();
+  // Quantize alpha as well as color, so antialiased curves and soft glows
+  // resolve into discrete pixel clusters instead of translucent smooth edges.
+  const pixels=g.getImageData(0,0,320,165),d=pixels.data;
+  for(let i=0;i<d.length;i+=4){
+   if(d[i+3]<16){d[i+3]=0;continue}
+   d[i]=colors[d[i]];d[i+1]=colors[d[i+1]];d[i+2]=colors[d[i+2]];d[i+3]=alphas[d[i+3]];
+  }
+  g.putImageData(pixels,0,0);target.save();target.imageSmoothingEnabled=false;target.drawImage(surface,0,0,1280,660);target.restore();
+ }
+ return {draw};
+})();
+
 let impactUntil=0,visualTime=0,previousRoster=0;
 function text(s,x,y,size=14,color='#fff',align='left'){c.font=`bold ${size}px monospace`;c.fillStyle=color;c.textAlign=align;c.fillText(s,x,y)}
 function draw(now){CrispHUD.update(state,session?.slot);const dt=Math.min(.05,(now-lastFrame)/1000||.016);lastFrame=now;const realTime=now/1000;
@@ -142,10 +164,15 @@ function draw(now){CrispHUD.update(state,session?.slot);const dt=Math.min(.05,(n
   c.save();if(now<impactUntil&&!s.paused)c.translate(Math.round(Math.sin(now*1.7)*4)*2,0);
   GrailArt.background(c,t);
   s.players.forEach((p,i)=>{if(p.char==='acheron'&&!s.paused&&!s.cinematic&&s.phase==='fight')p=AcheronArt.prepare(p,t,i);const old=DuelMotion.advance(smoothed[i],p,dt,s.paused||!!s.cinematic||s.phase!=='fight');smoothed[i]=old;fighter(c,{...p,...old,airborne:p.y>0||p.vy>0},t)});
-  GrailArt.effects(c,s,t);GojoArt.effects(c,s,t);AcheronArt.effects(c,s,t);AllMightArt.effects(c,s,t);c.restore();
+  PixelEffects.draw(c,g=>{GrailArt.effects(g,s,t);GojoArt.effects(g,s,t);AcheronArt.effects(g,s,t);AllMightArt.effects(g,s,t)});c.restore();
   if(s.phase==='countdown'){c.fillStyle='#06112e9a';c.fillRect(0,235,1280,100);text(s.phase==='countdown'?String(Math.ceil(s.delay)):s.banner,640,292,54,'#fff1c3','center');text(s.phase==='countdown'?'ROUND '+s.round:'',640,327,15,'#e6e7ef','center')}
   text('F U Y U K I  /  M O O N L I T  R I V E R S I D E',640,641,10,'#d3d9ef','center');
-  NobleCinema.draw(c,s);ResultCinema.draw(c,s,session.slot);view.imageSmoothingEnabled=false;view.clearRect(0,0,1280,660);view.drawImage(buffer,0,0,1280,660);
+  if(s.cinematic){
+   const title=s.cinematic.char==='gojo'?1:(s.cinematic.titleDuration??1);
+   if(s.cinematic.elapsed<title)NobleCinema.draw(c,s);
+   else PixelEffects.draw(c,g=>NobleCinema.draw(g,s));
+  }
+  ResultCinema.draw(c,s,session.slot);view.imageSmoothingEnabled=false;view.clearRect(0,0,1280,660);view.drawImage(buffer,0,0,1280,660);
  }
  requestAnimationFrame(draw)
 }requestAnimationFrame(draw);
