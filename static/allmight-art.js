@@ -67,7 +67,6 @@ const AllMightArt=(()=>{
   cg.strokeStyle='#f6cf86';cg.lineWidth=1;
   for(let n=0;n<11;n++){const a=n*2.399;cg.beginPath();cg.moveTo(237,186);for(let k=1;k<6;k++){const r=k*22*q;cg.lineTo(Math.round(237+Math.cos(a)*r+(k%2?4:-4)),Math.round(186+Math.sin(a)*r*.26))}cg.stroke()}
  }
- function caption(text,y,size=14){cg.save();cg.textAlign='center';cg.font='bold '+size+'px monospace';cg.lineWidth=3;cg.strokeStyle='#080d1c';cg.strokeText(text,192,y);cg.fillStyle='#fff0b7';cg.fillText(text,192,y);cg.restore()}
  function cinema(target,time){
   if(!worldImage||cinemaFrames.length!==12)return;
   const t=Math.max(0,Math.min(5.599,time));cg.setTransform(1,0,0,1,0,0);cg.globalAlpha=1;cg.imageSmoothingEnabled=false;box(0,0,384,216,'#080d1c');
@@ -75,7 +74,7 @@ const AllMightArt=(()=>{
    const q=ease(t/.85);landscape(t,1.15,-q*6);box(0,0,384,216,'#06102199');
    // Dedicated face art, with a narrowing eye-line cut rather than enlarged idle art.
    cg.save();cg.beginPath();cg.rect(0,23-q*15,384,169+q*30);cg.clip();actor(t<.55?0:1,247-q*9,245,.90+q*.045);cg.restore();
-   speed(t,240,125,.20);box(0,181,116,2,'#dab665');cg.font='bold 11px monospace';cg.fillStyle='#f9d999';cg.fillText('ONE FOR ALL',18,172);
+   speed(t,240,125,.20);
   }else if(t<1.65){
    const q=ease((t-.85)/.8);landscape(t,1.22-q*.15,q*5);wind(t,176,186,62+q*27,.35,true);
    actor(t<1.13?4:t<1.43?5:6,164-q*5,197,.46,q*.025);wind(t,175,192,55+q*18,.40);
@@ -83,7 +82,7 @@ const AllMightArt=(()=>{
   }else if(t<2.25){
    const q=ease((t-1.65)/.6);landscape(t,1.45,q*9);box(0,0,384,216,'#080d1c55');
    actor(t<1.96?2:3,225-q*14,286,.73+q*.055,-q*.04);speed(t,220,105,.35+q*.3);
-   caption('UNITED STATES OF',196,16);
+   
   }else if(t<2.78){
    const q=clamp((t-2.25)/.53);landscape(t,1.12+q*.12,-q*8);
    const i=q<.25?5:q<.56?6:7;actor(i,161+q*q*44,204,.49,-.04+q*.12);
@@ -92,7 +91,7 @@ const AllMightArt=(()=>{
    cg.strokeStyle='#ffe2a0';cg.lineWidth=3;cg.beginPath();cg.arc(210,142,62,-2.4,-2.4+q*2.6);cg.stroke();
   }else if(t<2.92){
    // Brief impact hold; one warm flash, then dark silhouette for readability.
-   box(0,0,384,216,t<2.83?'#f6dfae':'#141723');actor(8,217,199,.50);speed(2.8,248,184,.9);caption('SMASH!',64,31);
+   box(0,0,384,216,t<2.83?'#f6dfae':'#141723');actor(8,217,199,.50);speed(2.8,248,184,.9);
   }else if(t<4.1){
    const age=t-2.92,q=clamp(age/1.18),shake=(1-q)*2;
    cg.save();cg.translate(Math.round(Math.sin(age*73)*shake),Math.round(Math.cos(age*91)*shake));landscape(t,1.17-q*.14,-q*6);
@@ -105,7 +104,7 @@ const AllMightArt=(()=>{
   }else{
    const q=ease((t-4.1)/1.5);landscape(t,1.04-q*.04,-8);cracks(.9);wind(t,230,191,240+q*40,(1-q)*.25,true);
    actor(t<4.34?10:11,214,198,.43,0);debris(1.18+(t-4.1)*.4,1.2);
-   cg.globalAlpha=clamp((t-4.5)/.35);caption('SYMBOL OF PEACE',32,13);cg.globalAlpha=1;
+   
    if(t>5.26){cg.globalAlpha=ease((t-5.26)/.34);box(0,0,384,216,'#080d1c');cg.globalAlpha=1}
   }
   box(0,0,384,7,'#080d1c');box(0,209,384,7,'#080d1c');
