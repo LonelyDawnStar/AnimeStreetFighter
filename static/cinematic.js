@@ -1,7 +1,7 @@
 'use strict';
 const NobleCinema=(()=>{
- const names={allmight:'UNITED STATES OF SMASH',acheron:'SLASHED DREAM',gojo:'HOLLOW PURPLE',saber:'EXCALIBUR',archer:'UNLIMITED BLADE WORKS',lancer:'GAE BOLG',gil:'ENUMA ELISH',iskandar:'IONIOI HETAIROI',medusa:'BELLEROPHON',berserker:'GOD HAND'};
- const subtitles={allmight:'평화의 상징 · 유나이티드 스테이츠 오브 스매시',acheron:'단칼에 끊어낸 붉은 꿈 조각',gojo:'허식 「자」 · 虚式「茈」',saber:'약속된 승리의 검',archer:'무한의 검제',lancer:'게이 볼그',gil:'에누마 엘리시',iskandar:'왕의 군세',medusa:'기영의 고삐 · 벨레로폰',berserker:'열두 번의 시련 · 갓 핸드'};
+ const names={magnus:'BIKE FROM HELL',allmight:'UNITED STATES OF SMASH',acheron:'SLASHED DREAM',gojo:'HOLLOW PURPLE',saber:'EXCALIBUR',archer:'UNLIMITED BLADE WORKS',lancer:'GAE BOLG',gil:'ENUMA ELISH',iskandar:'IONIOI HETAIROI',medusa:'BELLEROPHON',berserker:'GOD HAND'};
+ const subtitles={magnus:'폭주 바이크',allmight:'평화의 상징 · 유나이티드 스테이츠 오브 스매시',acheron:'단칼에 끊어낸 붉은 꿈 조각',gojo:'허식 「자」 · 虚式「茈」',saber:'약속된 승리의 검',archer:'무한의 검제',lancer:'게이 볼그',gil:'에누마 엘리시',iskandar:'왕의 군세',medusa:'기영의 고삐 · 벨레로폰',berserker:'열두 번의 시련 · 갓 핸드'};
  const durations={acheron:5.2,...OriginalCinema.durations,archer:460/60,iskandar:7.5,medusa:7};
  const ready=Promise.all([EmiyaCinema.ready,RiderCinema.ready,OriginalCinema.ready]);ready.catch(()=>{});
  function draw(g,state){const scene=state.cinematic;if(!scene)return;
@@ -16,6 +16,7 @@ const NobleCinema=(()=>{
    g.font=scene.char==='allmight'?'bold 32px monospace':'bold 38px monospace';g.fillText(names[scene.char],328,337);g.font='24px sans-serif';g.fillText(subtitles[scene.char],328,390);
    if(width<1280){g.fillStyle='#fff4bd';g.fillRect(width-8,215,8,230)}g.restore();return;
   }
+  if(scene.char==='magnus'){MagnusArt.cinema(g,Math.max(0,scene.elapsed-titleDuration));return;}
   if(scene.char==='allmight'){AllMightArt.cinema(g,Math.max(0,scene.elapsed-titleDuration));return;}
   if(scene.char==='acheron'){AcheronArt.cinema(g,Math.max(0,scene.elapsed-titleDuration));return;}
   if(scene.char==='gojo'){const elapsed=Math.max(0,scene.elapsed-titleDuration)*6.4/Math.max(.001,scene.duration-titleDuration);GojoArt.cinema(g,{...scene,elapsed});return;}
@@ -30,6 +31,7 @@ const NobleCinema=(()=>{
  }
  return {ready,draw,durations,names,subtitles};
 })();
+
 
 
 

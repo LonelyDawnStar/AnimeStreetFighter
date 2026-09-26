@@ -2,6 +2,7 @@
 const $=id=>document.getElementById(id),defs={saber:{name:'알트리아',cls:'SABER',color:'#79c9ff',body:'#274b9d',hair:'#f2d788',style:'균형 · 검술',desc:'L: 스트라이크 에어 · 바람 참격. 보구: 거대 마력 검을 휘두르는 엑스칼리버',np:'EXCALIBUR'},archer:{name:'에미야',cls:'ARCHER',color:'#ff7878',body:'#ae3544',hair:'#e6e8ed',style:'기동 · 투사체',desc:'L: 칼라드볼그 · 0.9초 충전 후 피해 28 · 마나 24. 충전 중 피격 시 취소. 보구: 무한의 검제',np:'UNLIMITED BLADE WORKS'},lancer:{name:'쿠 훌린',cls:'LANCER',color:'#65ede1',body:'#247297',hair:'#244877',style:'속도 · 긴 사거리',desc:'L: 투창 · 게이 볼그를 던져 견제. 보구: 게이 볼그',np:'GAE BOLG'},gil:{name:'길가메시',cls:'ARCHER',color:'#ffd477',body:'#c79b46',hair:'#f1d87e',style:'견제 · 연속 투사체',desc:'세 발의 투사체로 공간을 장악. 보구: 에누마 엘리시',np:'ENUMA ELISH'}};
 Object.assign(defs,{berserker:{name:'헤라클레스',cls:'BERSERKER',color:'#dc9464',style:'중량 · 재기',desc:'L: 부검 내려치기 · 준비 0.48초 / 피해 24. U: 갓 핸드 · 체력 12% 회복, 6초 피해 35% 감소, 효과 중 1회 재기(라운드당 1회). 원작 능력을 대전용으로 조정',np:'GOD HAND'},iskandar:{name:'이스칸다르',cls:'RIDER',color:'#e6aa62',style:'중량 · 돌격',desc:'L: 검을 앞세운 돌격 · 피해 22. 보구: 왕의 군세 · 군대와 함께 돌진',np:'IONIOI HETAIROI'},medusa:{name:'메두사',cls:'RIDER',color:'#bf99ec',style:'기동 · 사슬 견제',desc:'L: 사슬 단검 투척 · 피해 14. 보구: 벨레로폰 · 페가수스 돌진',np:'BELLEROPHON'}});
 Object.assign(defs,{gojo:{name:'고죠 사토루',cls:'JUJUTSU',color:'#9acfff',style:'술식 · 원거리 압박',desc:'L: 술식반전 혁 · 준비 0.32초 / 피해 18 / 마나 28. U: 허식 자 · 창과 혁을 결합해 발사. 기본 고정 피해 36, 가드·보호막 적용. 연출 6.4초 이후 조준 고정과 0.6초 발사 준비. HP 조건 없이 사용, 점프·회피 가능. 전투 수치는 대전용 조정.',np:'HOLLOW PURPLE'}});
+Object.assign(defs,{magnus:{name:'매그너스',cls:'EXPERIMENT',color:'#d4b48b',style:'망치 · 회전 · 바이크',desc:'L: 17대1 — 주변 165 범위를 6회 타격, 회당 피해 4 / 마나 32. 회전 중 좌우 이동 가능, 피격 시 중단. U: 폭주 바이크 — 가속 질주 후 충돌 폭발 피해 36. 달리는 중 U 재입력으로 탈출·바이크 발사. 원작을 1대1용으로 조정.',np:'BIKE FROM HELL'}});
 Object.assign(defs,{allmight:{name:'올마이트',cls:'HERO',color:'#ffd46b',style:'근접 · 강력한 주먹',desc:'현역 머슬폼 · 원 포 올. L: 디트로이트 스매시, 준비 0.42초 / 전방 260 / 피해 22 / 마나 30. U: 유나이티드 스테이츠 오브 스매시, 준비 0.5초 / 전방 340 / 피해 38. 가드·점프·회피 가능. 원작을 대전용으로 조정.',np:'UNITED STATES OF SMASH'}});
 Object.assign(defs,{acheron:{name:'아케론',cls:'NIHILITY',color:'#cc9dff',style:'발도 · 강화 평타',desc:'L: 팔뢰비도 · 번개 발도 참격, 준비 0.28초 / 피해 18 / 마나 28. U: 다음 J/K 3회 강화(J 14 / K 20, 사거리 +85). 모두 적중하면 황천의 귀환(18). 헛침·가드·회피도 횟수 소모, 가드/회피는 적중 제외. 강화는 라운드 종료 시 초기화. 원작을 대전용으로 재구성.',np:'SLASHED DREAM'}});
 let selected='saber',session=null,state=null,keys=new Set(),pending=new Set(),generation=0,lastHealth=null,smoothed=[],lastFrame=0;
@@ -164,7 +165,7 @@ function draw(now){CrispHUD.update(state,session?.slot);const dt=Math.min(.05,(n
   c.save();if(now<impactUntil&&!s.paused)c.translate(Math.round(Math.sin(now*1.7)*4)*2,0);
   GrailArt.background(c,t);
   s.players.forEach((p,i)=>{if(p.char==='acheron'&&!s.paused&&!s.cinematic&&s.phase==='fight')p=AcheronArt.prepare(p,t,i);const old=DuelMotion.advance(smoothed[i],p,dt,s.paused||!!s.cinematic||s.phase!=='fight');smoothed[i]=old;fighter(c,{...p,...old,airborne:p.y>0||p.vy>0},t)});
-  PixelEffects.draw(c,g=>{GrailArt.effects(g,s,t);GojoArt.effects(g,s,t);AcheronArt.effects(g,s,t);AllMightArt.effects(g,s,t)});c.restore();
+  PixelEffects.draw(c,g=>{GrailArt.effects(g,s,t);GojoArt.effects(g,s,t);AcheronArt.effects(g,s,t);AllMightArt.effects(g,s,t);MagnusArt.effects(g,s,t)});c.restore();
   if(s.phase==='countdown'){c.fillStyle='#06112e9a';c.fillRect(0,235,1280,100);text(s.phase==='countdown'?String(Math.ceil(s.delay)):s.banner,640,292,54,'#fff1c3','center');text(s.phase==='countdown'?'ROUND '+s.round:'',640,327,15,'#e6e7ef','center')}
   text('F U Y U K I  /  M O O N L I T  R I V E R S I D E',640,641,10,'#d3d9ef','center');
   if(s.cinematic){
@@ -207,6 +208,7 @@ async function refreshRooms(){
 }
 $('refreshRooms').onclick=refreshRooms;$('onlyOpen').onchange=renderRooms;
 refreshRooms();
+
 
 
 

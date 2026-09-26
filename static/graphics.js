@@ -28,7 +28,7 @@ const GrailArt=(()=>{
   });
  }
  function portrait(frame,x,y,w,h){const face=make(w,h),g=face.getContext('2d');g.imageSmoothingEnabled=false;g.drawImage(frame.canvas,x,y,w,h,0,0,w,h);return face}
- art.promise=Promise.all([load('/assets/riverside.png'),load('/assets/saber-v05.png'),load('/assets/servants.png'),load('/assets/archer-motion-v04.png'),load('/assets/lancer-motion-v04.png'),load('/assets/gil-motion-v04.png'),load('/assets/gil-weapon.png'),load('/assets/treasury-v06.png'),load('/assets/saber-plant-v015.png'),load('/assets/gil-ea-v016.png'),load('/assets/emiya-caladbolg-v021.png'),load('/assets/saber-greatslash-v025.png'),load('/assets/saber-strike-air-v025.png'),load('/assets/lancer-throw-v025.png'),load('/assets/lancer-source-v025.png'),load('/assets/combat-effects-v024.png'),load('/assets/iskandar-v031.png'),load('/assets/medusa-v031.png'),load('/assets/rider-mounts-v031.png'),load('/assets/berserker-v033.png'),load('/assets/gojo-v043.png'),load('/assets/acheron-v046.png'),load('/assets/acheron-awakened-v046.png'),load('/assets/allmight-v052.png'),load('/assets/allmight-cinema-v053.png'),load('/assets/allmight-world-v053.png')]).then(([stage,saber,others,archerMotion,lancerMotion,gilMotion,weapon,treasury,saberPlant,gilEa,caladBow,saberGreat,saberAir,lancerThrow,lancerSource,combatEffects,iskandar,medusa,mounts,berserker,gojoImage,acheronImage,acheronAwakened,allmightImage,allmightCinema,allmightWorld])=>{
+ art.promise=Promise.all([load('/assets/riverside.png'),load('/assets/saber-v05.png'),load('/assets/servants.png'),load('/assets/archer-motion-v04.png'),load('/assets/lancer-motion-v04.png'),load('/assets/gil-motion-v04.png'),load('/assets/gil-weapon.png'),load('/assets/treasury-v06.png'),load('/assets/saber-plant-v015.png'),load('/assets/gil-ea-v016.png'),load('/assets/emiya-caladbolg-v021.png'),load('/assets/saber-greatslash-v025.png'),load('/assets/saber-strike-air-v025.png'),load('/assets/lancer-throw-v025.png'),load('/assets/lancer-source-v025.png'),load('/assets/combat-effects-v024.png'),load('/assets/iskandar-v031.png'),load('/assets/medusa-v031.png'),load('/assets/rider-mounts-v031.png'),load('/assets/berserker-v033.png'),load('/assets/gojo-v043.png'),load('/assets/acheron-v046.png'),load('/assets/acheron-awakened-v046.png'),load('/assets/allmight-v052.png'),load('/assets/allmight-cinema-v053.png'),load('/assets/allmight-world-v053.png'),load('/assets/magnus-v056.png'),load('/assets/magnus-bike-v056.png'),load('/assets/magnus-road-v056.png')]).then(([stage,saber,others,archerMotion,lancerMotion,gilMotion,weapon,treasury,saberPlant,gilEa,caladBow,saberGreat,saberAir,lancerThrow,lancerSource,combatEffects,iskandar,medusa,mounts,berserker,gojoImage,acheronImage,acheronAwakened,allmightImage,allmightCinema,allmightWorld,magnusImage,magnusBike,magnusRoad])=>{
   art.stage=stage;
   const sf=unpack(saber,4,[166,480,790,1120,174,487,801,1128,170,478,802,1124,169,476,788,1120],4);
   sf.forEach(f=>f.scale=.77);
@@ -114,12 +114,13 @@ const GrailArt=(()=>{
   const bf=br.map(([x,y,w,h,pivot,foot])=>({canvas:cut(berserker,x,y,w,h),pivot,foot,scale:.84}));
   art.frames.berserker={idle:[bf[0]],run:[bf[1],bf[2]],jump:[bf[3]],attack:[bf[4],bf[5],bf[6],bf[0]],guard:[bf[7]],hurt:[bf[8]],dash:[bf[9]],release:[bf[11],bf[10],bf[10],bf[11]]};
   art.portraits.berserker=portrait(bf[0],139,19,110,130);
-  GojoArt.install(art,gojoImage);AcheronArt.install(art,acheronImage,acheronAwakened);AllMightArt.install(art,allmightImage);AllMightArt.installCinema(art,allmightCinema,allmightWorld);art.ready=true;DuelMotion.start(art);return art;
+  GojoArt.install(art,gojoImage);AcheronArt.install(art,acheronImage,acheronAwakened);AllMightArt.install(art,allmightImage);AllMightArt.installCinema(art,allmightCinema,allmightWorld);MagnusArt.install(art,magnusImage,magnusBike,magnusRoad);art.ready=true;DuelMotion.start(art);return art;
  }).catch(e=>{art.failed=true;art.error=e;return art});
  function rect(g,x,y,w,h,color){g.fillStyle=color;g.fillRect(Math.round(x),Math.round(y),Math.round(w),Math.round(h))}
  function label(g,str,x,y,size,color='#f9e4b0',align='left'){g.fillStyle=color;g.font=`bold ${size}px monospace`;g.textAlign=align;g.fillText(str,x,y)}
  function frameFor(p,t){const f=art.frames[p.char];if(!f)return null;
   const gait=DuelMotion.frame(p);if(gait)return gait;
+  if(p.char==='magnus'){const custom=MagnusArt.frame(p,t);if(custom)return custom;}
   if(p.char==='allmight'){const custom=AllMightArt.frame(p,t);if(custom)return custom;}
   if(p.char==='acheron'){const custom=AcheronArt.frame(p,t);if(custom)return custom;}
   if(p.char==='gojo'){const custom=GojoArt.frame(p,t);if(custom)return custom;}
@@ -188,7 +189,7 @@ const GrailArt=(()=>{
   if(p.action==='guard'){
    for(let n=0;n<16;n++){const a=-1.2+n*.16;rect(g,38+Math.cos(a)*38,-120+Math.sin(a)*95,5,12,'#adf3ff')}
   }
-  if(action&&p.anim>0&&p.action!=='np'&&p.char!=='gil'&&p.char!=='lancer'&&p.char!=='gojo'&&p.char!=='acheron'&&p.char!=='allmight'){
+  if(action&&p.anim>0&&p.action!=='np'&&p.char!=='gil'&&p.char!=='lancer'&&p.char!=='gojo'&&p.char!=='acheron'&&p.char!=='allmight'&&p.char!=='magnus'){
    g.save();g.globalAlpha=Math.min(.8,p.anim*3);const color=p.char==='lancer'?'#ff708c':p.char==='archer'?'#e3ecff':'#d4f7ff';
    for(let n=0;n<22;n++){const a=-1.15+n*.10,r=105;rect(g,32+Math.cos(a)*r,-128+Math.sin(a)*64,n<12?10:6,5,color)}g.restore();
   }
@@ -208,7 +209,7 @@ const GrailArt=(()=>{
   g.save();g.imageSmoothingEnabled=false;
   const gradient=g.createLinearGradient(0,0,0,146);gradient.addColorStop(0,'#080f1bf5');gradient.addColorStop(1,'#080f1bc0');g.fillStyle=gradient;g.fillRect(0,0,1280,144);
   rect(g,24,143,1232,1,'#e6cb9244');
-  const ids={allmight:'ALL MIGHT',gojo:'GOJO',acheron:'ACHERON',saber:'SABER',archer:'ARCHER',lancer:'LANCER',gil:'GILGAMESH',iskandar:'ISKANDAR',medusa:'MEDUSA',berserker:'BERSERKER'};
+  const ids={magnus:'MAGNUS',allmight:'ALL MIGHT',gojo:'GOJO',acheron:'ACHERON',saber:'SABER',archer:'ARCHER',lancer:'LANCER',gil:'GILGAMESH',iskandar:'ISKANDAR',medusa:'MEDUSA',berserker:'BERSERKER'};
   for(let i=0;i<2;i++){
    const p=s.players[i],right=i===1,x=right?728:112,w=440,px=right?1192:24,accent=i===slot?'#85dbc9':'#e6cb92';
    rect(g,px,22,64,80,'#1a293d');rect(g,px,22,2,80,accent);
@@ -237,7 +238,7 @@ const GrailArt=(()=>{
  art.effects=(g,s,t)=>{
   for(const p of s.players){if(p.shield>0){const w=84*Math.min(1,p.shield/(p.maxHp||100));rect(g,p.x-42,535-p.y-280,84,6,'#243247');rect(g,p.x-42,535-p.y-280,w,6,'#b5c8ff')}}
   for(const f of s.fx){if(f.kind==='aug_ring'){const y=535-f.y,q=1-f.life/.5,r=f.radius*Math.max(.1,q);for(let j=0;j<36;j++){const angle=j*Math.PI/18;rect(g,f.x+Math.round(Math.cos(angle)*r/4)*4,y+Math.round(Math.sin(angle)*r*.45/4)*4,8,8,f.color)}}}
-  for(const sh of s.shots){if(['purple','red','octobolt','stygian','detroit','united_smash'].includes(sh.kind))continue;const dir=Math.sign(sh.v),y=535-sh.y,x=sh.x;
+  for(const sh of s.shots){if(['purple','red','octobolt','stygian','detroit','united_smash','magnus_spin','magnus_bike'].includes(sh.kind))continue;const dir=Math.sign(sh.v),y=535-sh.y,x=sh.x;
    if(sh.kind==='aug_orb'||sh.kind==='aug_nova'){
     if(sh.delay>0){rect(g,x-10,y-10,20,20,'#baa9ff55');continue}
     if(sh.kind==='aug_nova')continue;
@@ -351,6 +352,7 @@ const GrailArt=(()=>{
  };
  art.frameFor=frameFor;art.unpack=unpack;return art;
 })();
+
 
 
 
