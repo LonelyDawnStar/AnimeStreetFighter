@@ -1,0 +1,389 @@
+{
+  "version": "7.4",
+  "count": 14,
+  "missing": [],
+  "sourceArtUnchanged": true,
+  "battleAtlasIndependent": true,
+  "composition": "full head, both shoulders and chest; contain centered-bottom; no crop or fade",
+  "totalBytes": 520310,
+  "portraits": [
+    {
+      "character": "saber",
+      "source": "v73-portraits/saber.png",
+      "sourceSha256": "2e6ac2ad817ae4efe2bd023b7e4b12e474a47c61f119efd9645f99d0cb963cd8",
+      "sourceSize": [
+        1254,
+        1254
+      ],
+      "outputs": [
+        {
+          "file": "saber.webp",
+          "size": [
+            512,
+            512
+          ],
+          "bytes": 33138
+        },
+        {
+          "file": "saber-thumb.webp",
+          "size": [
+            256,
+            256
+          ],
+          "bytes": 11446
+        }
+      ]
+    },
+    {
+      "character": "archer",
+      "source": "v73-portraits/archer.png",
+      "sourceSha256": "88bccb4c9bc93a598c8d3786ce7a7650b902df71c9064512ed1eb9079a77ca4d",
+      "sourceSize": [
+        1254,
+        1254
+      ],
+      "outputs": [
+        {
+          "file": "archer.webp",
+          "size": [
+            512,
+            512
+          ],
+          "bytes": 22838
+        },
+        {
+          "file": "archer-thumb.webp",
+          "size": [
+            256,
+            256
+          ],
+          "bytes": 8048
+        }
+      ]
+    },
+    {
+      "character": "gilgamesh",
+      "source": "v73-portraits/gilgamesh.png",
+      "sourceSha256": "a4dcb4967be3458f36b7231f0999e52482afc99a4d17ea7126c2376c79d68645",
+      "sourceSize": [
+        1254,
+        1254
+      ],
+      "outputs": [
+        {
+          "file": "gilgamesh.webp",
+          "size": [
+            512,
+            512
+          ],
+          "bytes": 32200
+        },
+        {
+          "file": "gilgamesh-thumb.webp",
+          "size": [
+            256,
+            256
+          ],
+          "bytes": 11826
+        }
+      ]
+    },
+    {
+      "character": "lancer",
+      "source": "v73-portraits/lancer.png",
+      "sourceSha256": "9799f292b9bb21deaf394295b3415f17b65eeca06e9b0d3c47c07b29990748bd",
+      "sourceSize": [
+        1254,
+        1254
+      ],
+      "outputs": [
+        {
+          "file": "lancer.webp",
+          "size": [
+            512,
+            512
+          ],
+          "bytes": 29250
+        },
+        {
+          "file": "lancer-thumb.webp",
+          "size": [
+            256,
+            256
+          ],
+          "bytes": 10090
+        }
+      ]
+    },
+    {
+      "character": "medusa",
+      "source": "v73-portraits/medusa.png",
+      "sourceSha256": "a62c348b4574b5ae9f109589d021bb0d21f22df30769b8b46966c3501f723354",
+      "sourceSize": [
+        1254,
+        1254
+      ],
+      "outputs": [
+        {
+          "file": "medusa.webp",
+          "size": [
+            512,
+            512
+          ],
+          "bytes": 29470
+        },
+        {
+          "file": "medusa-thumb.webp",
+          "size": [
+            256,
+            256
+          ],
+          "bytes": 10044
+        }
+      ]
+    },
+    {
+      "character": "iskandar",
+      "source": "v73-portraits/iskandar.png",
+      "sourceSha256": "4553a7c1175e41a9d4847a4fe69e5fe79b06ee6c35a926973850ccdf57f40466",
+      "sourceSize": [
+        1254,
+        1254
+      ],
+      "outputs": [
+        {
+          "file": "iskandar.webp",
+          "size": [
+            512,
+            512
+          ],
+          "bytes": 34874
+        },
+        {
+          "file": "iskandar-thumb.webp",
+          "size": [
+            256,
+            256
+          ],
+          "bytes": 12122
+        }
+      ]
+    },
+    {
+      "character": "gojo",
+      "source": "v73-portraits/gojo.png",
+      "sourceSha256": "b924aeb07d01b06811e7d445ea7d145737b30e8b1088b3306e7e8a77440d17ef",
+      "sourceSize": [
+        1254,
+        1254
+      ],
+      "outputs": [
+        {
+          "file": "gojo.webp",
+          "size": [
+            512,
+            512
+          ],
+          "bytes": 16432
+        },
+        {
+          "file": "gojo-thumb.webp",
+          "size": [
+            256,
+            256
+          ],
+          "bytes": 5670
+        }
+      ]
+    },
+    {
+      "character": "heracles",
+      "source": "v73-portraits/heracles.png",
+      "sourceSha256": "d18b673645ba5f87c1b0496a82e0de0cca9e82a5df6d47f098bfffd547724df8",
+      "sourceSize": [
+        1254,
+        1254
+      ],
+      "outputs": [
+        {
+          "file": "heracles.webp",
+          "size": [
+            512,
+            512
+          ],
+          "bytes": 24566
+        },
+        {
+          "file": "heracles-thumb.webp",
+          "size": [
+            256,
+            256
+          ],
+          "bytes": 8476
+        }
+      ]
+    },
+    {
+      "character": "allmight",
+      "source": "v73-portraits/allmight.png",
+      "sourceSha256": "4dcb40e42631369f3622e8564d7232a0a9b107b34b6e6df81fb71b9778c6554a",
+      "sourceSize": [
+        1254,
+        1254
+      ],
+      "outputs": [
+        {
+          "file": "allmight.webp",
+          "size": [
+            512,
+            512
+          ],
+          "bytes": 25724
+        },
+        {
+          "file": "allmight-thumb.webp",
+          "size": [
+            256,
+            256
+          ],
+          "bytes": 8962
+        }
+      ]
+    },
+    {
+      "character": "katja",
+      "source": "v74-portraits/katja.png",
+      "sourceSha256": "fad01e102a4d523da7d773b021198bcbb0bc1bf8223e5ce4e4364c7e3fd59fef",
+      "sourceSize": [
+        1254,
+        1254
+      ],
+      "outputs": [
+        {
+          "file": "katja.webp",
+          "size": [
+            512,
+            512
+          ],
+          "bytes": 17156
+        },
+        {
+          "file": "katja-thumb.webp",
+          "size": [
+            256,
+            256
+          ],
+          "bytes": 5828
+        }
+      ]
+    },
+    {
+      "character": "magnus",
+      "source": "v73-portraits/magnus.png",
+      "sourceSha256": "63b49a2c9be1fb9bb20ff7ddeb80e639ec21146e133c28c58e36e2691fe3fbed",
+      "sourceSize": [
+        1254,
+        1254
+      ],
+      "outputs": [
+        {
+          "file": "magnus.webp",
+          "size": [
+            512,
+            512
+          ],
+          "bytes": 23278
+        },
+        {
+          "file": "magnus-thumb.webp",
+          "size": [
+            256,
+            256
+          ],
+          "bytes": 8702
+        }
+      ]
+    },
+    {
+      "character": "ambessa",
+      "source": "v73-portraits/ambessa.png",
+      "sourceSha256": "26acbef3a821438fa7d1ad565efaade6cc2d15ddc4f7fce909d6ef040126c52e",
+      "sourceSize": [
+        1254,
+        1254
+      ],
+      "outputs": [
+        {
+          "file": "ambessa.webp",
+          "size": [
+            512,
+            512
+          ],
+          "bytes": 33890
+        },
+        {
+          "file": "ambessa-thumb.webp",
+          "size": [
+            256,
+            256
+          ],
+          "bytes": 11988
+        }
+      ]
+    },
+    {
+      "character": "acheron",
+      "source": "v73-portraits/acheron.png",
+      "sourceSha256": "6815530107d70ea84bde37d0787972edf3a573eb2e38db42e333ec504fa2302f",
+      "sourceSize": [
+        1254,
+        1254
+      ],
+      "outputs": [
+        {
+          "file": "acheron.webp",
+          "size": [
+            512,
+            512
+          ],
+          "bytes": 31314
+        },
+        {
+          "file": "acheron-thumb.webp",
+          "size": [
+            256,
+            256
+          ],
+          "bytes": 10938
+        }
+      ]
+    },
+    {
+      "character": "boothill",
+      "source": "v73-portraits/boothill.png",
+      "sourceSha256": "d57e25ac40182378c3361a8da6c60edaf4850f33670555c267dc118e8762d997",
+      "sourceSize": [
+        1254,
+        1254
+      ],
+      "outputs": [
+        {
+          "file": "boothill.webp",
+          "size": [
+            512,
+            512
+          ],
+          "bytes": 30792
+        },
+        {
+          "file": "boothill-thumb.webp",
+          "size": [
+            256,
+            256
+          ],
+          "bytes": 11248
+        }
+      ]
+    }
+  ]
+}

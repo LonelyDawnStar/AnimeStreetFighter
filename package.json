@@ -1,0 +1,18 @@
+{
+  "name": "anime-street-fighter-rebirth",
+  "version": "7.4.0",
+  "private": true,
+  "description": "A fixed-step, server-authoritative fourteen-character rebuild of AnimeStreetFighter",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "play": "node rebirth/launch.mjs",
+    "rebirth": "node rebirth/server.mjs",
+    "start": "node rebirth/server.mjs",
+    "test": "node --test rebirth/tests/*.test.mjs"
+  },
+  "dependencies": {
+    "ws": "^8.18.3"
+  }
+}

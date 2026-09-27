@@ -1,0 +1,110 @@
+{
+  "version": "7.4",
+  "method": "Actual Chromium Renderer and final current engine, one L press against grounded idle Katja. Left control reconstructs only the former fixed projectile y=150 after spawning at a safe distance; no old renderer/engine is claimed. Diagnostic lines and labels exist only in this saved contact sheet.",
+  "nativeCanvas": [
+    480,
+    270
+  ],
+  "distanceWorld": 410,
+  "expectedDamage": 119,
+  "finalDamage": {
+    "previousHeight": 0,
+    "fixedHeight": 119
+  },
+  "contactSimulationStep": 40,
+  "arrowHeight": 140,
+  "releaseAndImpact": [
+    {
+      "stage": "release",
+      "previousHeightReconstruction": true,
+      "simulationTick": 26,
+      "actionFrame": 25,
+      "arrowHeight": 150,
+      "katjaHurtbox": {
+        "left": 625.64,
+        "right": 674.36,
+        "bottom": 8,
+        "top": 137.76
+      },
+      "damage": 0,
+      "visibleArrows": [
+        {
+          "x": 319,
+          "y": 150,
+          "width": 105,
+          "height": 22
+        }
+      ]
+    },
+    {
+      "stage": "release",
+      "previousHeightReconstruction": false,
+      "simulationTick": 26,
+      "actionFrame": 25,
+      "arrowHeight": 140,
+      "katjaHurtbox": {
+        "left": 625.64,
+        "right": 674.36,
+        "bottom": 8,
+        "top": 137.76
+      },
+      "damage": 0,
+      "visibleArrows": [
+        {
+          "x": 319,
+          "y": 140,
+          "width": 105,
+          "height": 22
+        }
+      ]
+    },
+    {
+      "stage": "contact",
+      "previousHeightReconstruction": true,
+      "simulationTick": 41,
+      "actionFrame": 40,
+      "arrowHeight": 150,
+      "katjaHurtbox": {
+        "left": 625.64,
+        "right": 674.36,
+        "bottom": 8,
+        "top": 137.76
+      },
+      "damage": 0,
+      "visibleArrows": [
+        {
+          "x": 574,
+          "y": 150,
+          "width": 105,
+          "height": 22
+        }
+      ]
+    },
+    {
+      "stage": "contact",
+      "previousHeightReconstruction": false,
+      "simulationTick": 41,
+      "actionFrame": 40,
+      "arrowHeight": 140,
+      "katjaHurtbox": {
+        "left": 625.64,
+        "right": 674.36,
+        "bottom": 8,
+        "top": 137.76
+      },
+      "damage": 119,
+      "visibleArrows": []
+    }
+  ],
+  "atlas": {
+    "version": 1,
+    "sourceFrameCount": 568,
+    "frameCount": 498,
+    "textureSize": [
+      2048,
+      3627
+    ],
+    "lossless": true
+  },
+  "pageErrors": []
+}

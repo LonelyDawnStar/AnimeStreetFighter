@@ -1,0 +1,130 @@
+{
+  "saberBlade": {
+    "file": "gold-giant-blade.png",
+    "size": [
+      268,
+      167
+    ],
+    "scale": 0.3333333333333333,
+    "sourceBounds": [
+      0,
+      43,
+      804,
+      544
+    ],
+    "coreBounds": [
+      21,
+      147,
+      789,
+      370
+    ],
+    "pivot": [
+      41.67,
+      71.33
+    ],
+    "bladeBase": [
+      75.0,
+      71.33
+    ],
+    "tip": [
+      262.67,
+      71.33
+    ]
+  },
+  "treasurySword": {
+    "file": "treasury-sword.png",
+    "size": [
+      107,
+      75
+    ],
+    "scale": 0.14035087719298245,
+    "sourceBounds": [
+      763,
+      9,
+      1523,
+      537
+    ],
+    "coreBounds": [
+      830,
+      171,
+      1514,
+      361
+    ],
+    "pivot": [
+      24.28,
+      34.81
+    ],
+    "bladeBase": [
+      40.7,
+      37.47
+    ],
+    "tip": [
+      105.26,
+      24.98
+    ]
+  },
+  "treasurySpear": {
+    "file": "treasury-spear.png",
+    "size": [
+      99,
+      66
+    ],
+    "scale": 0.12631578947368421,
+    "sourceBounds": [
+      16,
+      489,
+      794,
+      1006
+    ],
+    "coreBounds": [
+      21,
+      684,
+      781,
+      799
+    ],
+    "pivot": [
+      42.82,
+      31.96
+    ],
+    "bladeBase": [
+      69.22,
+      31.96
+    ],
+    "tip": [
+      96.51,
+      31.96
+    ]
+  },
+  "treasuryAxe": {
+    "file": "treasury-axe.png",
+    "size": [
+      104,
+      73
+    ],
+    "scale": 0.13655761024182078,
+    "sourceBounds": [
+      767,
+      465,
+      1525,
+      998
+    ],
+    "coreBounds": [
+      814,
+      593,
+      1517,
+      910
+    ],
+    "pivot": [
+      46.98,
+      37.96
+    ],
+    "bladeBase": [
+      80.98,
+      37.83
+    ],
+    "tip": [
+      102.28,
+      37.96
+    ]
+  }
+}

@@ -1,0 +1,15 @@
+# Rebirth online service. This branch does not change the existing main service.
+services:
+  - type: web
+    name: anime-street-fighter-rebirth
+    runtime: node
+    plan: free
+    region: singapore
+    branch: codex/rebirth-online
+    buildCommand: npm ci --omit=dev
+    startCommand: npm start
+    healthCheckPath: /health
+    autoDeployTrigger: off
+    envVars:
+      - key: NODE_VERSION
+        value: "22"

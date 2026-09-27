@@ -1,0 +1,128 @@
+{
+  "version": "7.4",
+  "charactersChecked": 14,
+  "sourceKeySuffixesAbsent": true,
+  "actualJKLUAndWJumpPreserved": true,
+  "help": "×\n\nHOW TO DUEL\n\n한순간을 노려라.\n기본 조작\n\nA / D 이동 W 점프 S 가드\n\nJ 약공격 K 강공격 L 스킬\n\nSPACE 회피 U 궁극기\n\nESC 일시 정지 (오프라인)\n\n대전의 감각\n\n공격에는 준비 시간과 빈틈이 있어요. 헛친 공격의 후딜을 노려 보세요.\n\n가드는 정면 공격을 막습니다. 회피의 짧은 무적 시간으로 투사체를 통과할 수 있어요.\n\n공방으로 게이지를 채우면 궁극기를 쓸 수 있어요. 훈련장에서는 궁극기 게이지가 채워집니다. 기술별 재사용 시간은 버튼에서 확인하세요.\n\n아케론: U로 검을 강화한 뒤 J를 세 번 눌러 눈물 베기를 사용합니다. 세 번째 강화 공격 뒤 황천의 귀환이 자동으로 이어집니다. 체력 아래 표시와 J 버튼에서 남은 강화 공격 횟수를 확인하세요.\n\n부트힐: J 권총 사격 · K 뒤꿈치 차기. L 뜨거운 자갈 위 탱고는 5초 동안 J를 3연발 리볼버 패닝으로 강화하지만 서로 받는 피해도 늘립니다. U 더스트 데빌의 선셋 로데오는 강력한 직선 사격이며, 가드하지 못한 상대를 잠시 둔화·취약 상태로 만듭니다.\n\n카티야: J 기본 사격 · K 조준 사격 · L 접근 금지 · U 정밀 조준. 매그너스: L 17대 1 회전 공격 · U 폭주 바이크. 주행 중 U를 다시 누르면 바이크를 발사합니다. 암베사: K 교활한 휩쓸기가 적중하면 제한 시간 안에 K를 다시 눌러 후속타인 파멸의 일격을 내려칩니다. L 배척 · U 공개 처형.\n\n메두사와 이스칸다르: 궁극기로 8초 동안 탑승합니다. 탑승 중에는 L / U로 돌진하고, J / K로 공격하세요. 이동·점프·가드·회피도 사용할 수 있어요. 돌진은 게이지를 추가로 쓰지 않으며, 두 버튼이 같은 재사용 시간을 공유합니다. 체력 아래에서 남은 탑승 시간과 돌진 재사용 시간을 확인하세요.\n\n로컬 2P: 1P는 위 조작 · 2P는 방향키 이동/점프/가드, 숫자패드 1/2/3 공격, 0 회피, 5 궁극기. 숫자패드 대신 7/8/9/0/- 키도 사용할 수 있어요.\n\n모바일: 가로 화면을 권장합니다. 왼쪽 조이스틱으로 이동하고 오른쪽 버튼으로 행동하세요.",
+  "roster": [
+    {
+      "character": "saber",
+      "selection": "L\n\n스트라이크 에어\n전방으로 바람의 참격을 날립니다.\n\nU\n\n엑스칼리버\n거대한 황금빛 검으로 전방을 내려칩니다.",
+      "touch": "MOVE 점프W 가드S 회피SPACE약공격J강공격K스킬L 궁극기U · 100%",
+      "control": "A D 이동 · W 점프 · S 가드 · SPACE 회피"
+    },
+    {
+      "character": "archer",
+      "selection": "L\n\n칼라드볼그\n활을 당겨 강력한 투영검을 쏩니다.\n\nU\n\n무한의 검제\n검의 세계를 펼쳐 투영검으로 몰아칩니다.",
+      "touch": "MOVE 점프W 가드S 회피SPACE약공격J강공격K스킬L 궁극기U · 100%",
+      "control": "A D 이동 · W 점프 · S 가드 · SPACE 회피"
+    },
+    {
+      "character": "gilgamesh",
+      "selection": "L\n\n왕의 재보\n세 개의 무작위 무기를 연속으로 사출합니다.\n\nU\n\n에누마 엘리시\n에아를 개방해 전방으로 광선을 지속 발사합니다.",
+      "touch": "MOVE 점프W 가드S 회피SPACE약공격J강공격K스킬L 궁극기U · 100%",
+      "control": "A D 이동 · W 점프 · S 가드 · SPACE 회피"
+    },
+    {
+      "character": "lancer",
+      "selection": "L\n\n돌격 찌르기\n빠르게 거리를 좁히며 창으로 찌릅니다.\n\nU\n\n게이 볼그\n깊게 파고드는 돌진 뒤 강력한 창격을 가합니다.",
+      "touch": "MOVE 점프W 가드S 회피SPACE약공격J강공격K스킬L 궁극기U · 100%",
+      "control": "A D 이동 · W 점프 · S 가드 · SPACE 회피"
+    },
+    {
+      "character": "medusa",
+      "selection": "L\n\n사슬 단검\n사슬을 뻗어 떨어진 상대를 견제합니다.\n\nU\n\n벨레로폰\n8초 동안 페가수스 탑승. L / U로 반복 돌진합니다.",
+      "touch": "MOVE 점프W 가드S 회피SPACE약공격J강공격K스킬L 궁극기U · 100%",
+      "control": "A D 이동 · W 점프 · S 가드 · SPACE 회피"
+    },
+    {
+      "character": "iskandar",
+      "selection": "L\n\n전진 베기\n검을 크게 휘두르며 전방을 압박합니다.\n\nU\n\n부케팔로스\n8초 동안 군마 탑승. L / U로 묵직하게 돌진합니다.",
+      "touch": "MOVE 점프W 가드S 회피SPACE약공격J강공격K스킬L 궁극기U · 100%",
+      "control": "A D 이동 · W 점프 · S 가드 · SPACE 회피"
+    },
+    {
+      "character": "gojo",
+      "selection": "L\n\n술식 순전 「창」\n푸른 투사체를 날려 적중한 상대를 당깁니다.\n\nU\n\n무량공처 · 허식 「자」\n근처를 영역으로 묶은 뒤, 전방으로 허식 「자」를 쏩니다.",
+      "touch": "MOVE 점프W 가드S 회피SPACE약공격J강공격K스킬L 궁극기U · 100%",
+      "control": "A D 이동 · W 점프 · S 가드 · SPACE 회피"
+    },
+    {
+      "character": "heracles",
+      "selection": "L\n\n도끼검 강타\n버티며 전진해 무거운 도끼검을 내려칩니다.\n\nU\n\n나인 라이브즈\n근거리에서 아홉 번의 연속 공격을 몰아칩니다.",
+      "touch": "MOVE 점프W 가드S 회피SPACE약공격J강공격K스킬L 궁극기U · 100%",
+      "control": "A D 이동 · W 점프 · S 가드 · SPACE 회피"
+    },
+    {
+      "character": "allmight",
+      "selection": "L\n\n디트로이트 스매시\n강한 펀치로 전방에 공기 충격파를 보냅니다.\n\nU\n\n유나이티드 스테이츠 오브 스매시\n앞으로 파고들며 온 힘을 실은 한 방을 날립니다.",
+      "touch": "MOVE 점프W 가드S 회피SPACE약공격J강공격K스킬L 궁극기U · 100%",
+      "control": "A D 이동 · W 점프 · S 가드 · SPACE 회피"
+    },
+    {
+      "character": "katja",
+      "selection": "K\n\n조준 사격\n총구를 겨누고 강한 한 발을 쏩니다. J는 기본 사격입니다.\n\nL\n\n접근 금지\n짧게 사격한 뒤 물러납니다. 적은 둔화되고 자신은 빨라집니다.\n\nU\n\n정밀 조준\n전방을 조준해 세 발을 쏩니다. 뒤의 탄환이 더 강하고 적중 시 둔화시킵니다.",
+      "touch": "MOVE 점프W 가드S 회피SPACE약공격J조준 사격K스킬L 궁극기U · 100%",
+      "control": "A D 이동 · W 점프 · S 가드 · SPACE 회피"
+    },
+    {
+      "character": "magnus",
+      "selection": "L\n\n17대 1\n무기를 휘두르며 회전해 주변을 연속 공격합니다.\n\nU\n\n폭주 바이크\n바이크로 돌진합니다. 주행 중 U를 다시 누르면 전방으로 발사합니다.",
+      "touch": "MOVE 점프W 가드S 회피SPACE약공격J강공격K스킬L 궁극기U · 100%",
+      "control": "A D 이동 · W 점프 · S 가드 · SPACE 회피"
+    },
+    {
+      "character": "ambessa",
+      "selection": "K\n\n교활한 휩쓸기 / 파멸의 일격\n첫 K가 적중하면 잠시 후속타를 쓸 수 있습니다. K를 다시 눌러 전방으로 내려치세요.\n\nL\n\n배척\n보호막을 얻고 힘을 모아 주변을 강타합니다.\n\nU\n\n공개 처형\n돌진해 상대를 들어 올린 뒤 바닥에 내려칩니다.",
+      "touch": "MOVE 점프W 가드S 회피SPACE약공격J휩쓸기K스킬L 궁극기U · 100%",
+      "control": "A D 이동 · W 점프 · S 가드 · SPACE 회피"
+    },
+    {
+      "character": "acheron",
+      "selection": "K\n\n피상을 절단한 자아\n낮게 파고들며 전방으로 발도합니다.\n\nL\n\n팔뢰비도\n준비 뒤 보라빛 교차 참격을 냅니다.\n\nU\n\n단칼에 끊어낸 붉은 꿈 조각\n다음 J 세 번이 눈물 베기로 강화됩니다. 마지막에 황천의 귀환이 이어집니다.",
+      "touch": "MOVE 점프W 가드S 회피SPACE약공격J발도K스킬L 궁극기U · 100%",
+      "control": "A D 이동 · W 점프 · S 가드 · SPACE 회피"
+    },
+    {
+      "character": "boothill",
+      "selection": "K\n\n두개골을 부수는 발굽\n뒤꿈치로 가까운 상대를 차고 밀어냅니다.\n\nL\n\n뜨거운 자갈 위 탱고\n5초 동안 J가 3연발이 됩니다. 서로 받는 피해가 커집니다.\n\nU\n\n더스트 데빌의 선셋 로데오\n강력한 한 발을 쏩니다. 막히지 않으면 잠시 둔화·취약을 겁니다.",
+      "touch": "MOVE 점프W 가드S 회피SPACE사격J발차기K대치L 궁극기U · 100%",
+      "control": "A D 이동 · W 점프 · S 가드 · SPACE 회피"
+    }
+  ],
+  "ambessaFollowup": {
+    "status": "후속타 3.0초",
+    "touch": "K · 2타 3.0초",
+    "control": "K · 후속타 전방 내려치기 3.0초"
+  },
+  "desktopWidth": 1440,
+  "mobileWidth": 390,
+  "noHorizontalOverflow": true,
+  "errors": [],
+  "scope": "Selection skill copy, control guide, HUD/status and touch hints only; no engine modifications by this UI task.",
+  "method": "14 fighters selected and entered actual training. HUD and touch DOM text, including inactive labels, scanned for original-game shortcuts; actual Ambessa heavy hit used to verify follow-up labels. Mobile layout checked at 390px; no mobile gesture behavior changed or tested.",
+  "viewports": [
+    {
+      "width": 1440,
+      "height": 1040
+    },
+    {
+      "width": 390,
+      "height": 844
+    }
+  ],
+  "visualReview": {
+    "katjaNewPortraitPresent": true,
+    "katjaNoGlasses": true,
+    "katjaAndAmbessaPanelsInspected": true,
+    "skillAndNameOverlap": false
+  },
+  "screenshots": [
+    "skills-katja-desktop-v74.png",
+    "skills-ambessa-desktop-v74.png",
+    "skills-katja-mobile-v74.png",
+    "skills-ambessa-mobile-v74.png",
+    "lobby.png",
+    "lobby-mobile-v74.png"
+  ]
+}

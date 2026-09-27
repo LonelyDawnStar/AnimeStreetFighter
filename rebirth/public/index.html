@@ -1,0 +1,338 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#080e17" />
+    <meta
+      name="description"
+      content="열네 파이터, 열네 가지 전투 스타일. Anime Street Fighter Rebirth 픽셀 대전."
+    />
+    <title>REBIRTH v7.4 — 14 Fighters</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23080e17'/%3E%3Cpath d='M30 5h4v35l9 4v5H21v-5l9-4zM29 49h6v10h-6' fill='%23d7c392'/%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <div id="toast" role="status" aria-live="polite" hidden></div>
+    <main id="lobby" class="shell">
+      <header class="masthead">
+        <a class="brand" href="./" aria-label="Rebirth 홈"><span class="brand-mark">R<span>®</span></span><span>ANIME STREET FIGHTER<strong>REBIRTH<span> / </span></strong></span></a>
+        <div class="mast-center"><span class="live-dot"></span> THE NEXT ROUND IS YOURS</div>
+        <div class="mast-actions"><button id="soundToggle" class="icon-button" aria-pressed="false">사운드 OFF</button><button class="icon-button" data-help>조작 가이드 ↗</button></div>
+      </header>
+      <section class="intro">
+        <div><p class="eyebrow">THE ARENA / CHARACTER SELECT</p><h1>네 방식으로, <em>승부해.</em></h1><p class="lede">한 번의 선택. 열네 가지 전투 스타일.</p></div>
+        <div class="edition-seal"><strong>14</strong><span>FIGHTERS<br><span id="buildVersion">v7.4</span></span></div>
+      </section>
+      <div class="lobby-grid">
+        <section class="selection" aria-labelledby="selectTitle">
+          <div class="section-label"><h2 id="selectTitle"><span class="step-number">01</span> 파이터 선택</h2><span id="selectionHint">SABER</span></div>
+          <div class="fighters"><button class="fighter-card saber selected" data-char="saber" aria-pressed="true" aria-label="알트리아 선택">
+              <span class="card-index">01</span><span class="selected-tick">✓</span>
+              <img id="saberPortrait" class="fighter-portrait" src="./art/portraits/saber-thumb.webp?v=7.4" width="256" height="256" alt="" decoding="async" />
+              <span class="fighter-details"><strong>알트리아</strong><small>SABER</small></span>
+            </button>
+<button class="fighter-card archer" data-char="archer" aria-pressed="false" aria-label="에미야 선택">
+              <span class="card-index">02</span><span class="selected-tick">✓</span>
+              <img id="archerPortrait" class="fighter-portrait" src="./art/portraits/archer-thumb.webp?v=7.4" width="256" height="256" alt="" decoding="async" />
+              <span class="fighter-details"><strong>에미야</strong><small>ARCHER</small></span>
+            </button>
+<button class="fighter-card gilgamesh" data-char="gilgamesh" aria-pressed="false" aria-label="길가메시 선택">
+              <span class="card-index">03</span><span class="selected-tick">✓</span>
+              <img id="gilgameshPortrait" class="fighter-portrait" src="./art/portraits/gilgamesh-thumb.webp?v=7.4" width="256" height="256" alt="" decoding="async" />
+              <span class="fighter-details"><strong>길가메시</strong><small>GILGAMESH</small></span>
+            </button>
+<button class="fighter-card lancer" data-char="lancer" aria-pressed="false" aria-label="쿠 훌린 선택">
+              <span class="card-index">04</span><span class="selected-tick">✓</span>
+              <img id="lancerPortrait" class="fighter-portrait" src="./art/portraits/lancer-thumb.webp?v=7.4" width="256" height="256" alt="" decoding="async" />
+              <span class="fighter-details"><strong>쿠 훌린</strong><small>LANCER</small></span>
+            </button>
+<button class="fighter-card medusa" data-char="medusa" aria-pressed="false" aria-label="메두사 선택">
+              <span class="card-index">05</span><span class="selected-tick">✓</span>
+              <img id="medusaPortrait" class="fighter-portrait" src="./art/portraits/medusa-thumb.webp?v=7.4" width="256" height="256" alt="" decoding="async" />
+              <span class="fighter-details"><strong>메두사</strong><small>MEDUSA</small></span>
+            </button>
+<button class="fighter-card iskandar" data-char="iskandar" aria-pressed="false" aria-label="이스칸다르 선택">
+              <span class="card-index">06</span><span class="selected-tick">✓</span>
+              <img id="iskandarPortrait" class="fighter-portrait" src="./art/portraits/iskandar-thumb.webp?v=7.4" width="256" height="256" alt="" decoding="async" />
+              <span class="fighter-details"><strong>이스칸다르</strong><small>ISKANDAR</small></span>
+            </button>
+<button class="fighter-card gojo" data-char="gojo" aria-pressed="false" aria-label="고죠 사토루 선택">
+              <span class="card-index">07</span><span class="selected-tick">✓</span>
+              <img id="gojoPortrait" class="fighter-portrait" src="./art/portraits/gojo-thumb.webp?v=7.4" width="256" height="256" alt="" decoding="async" />
+              <span class="fighter-details"><strong>고죠 사토루</strong><small>GOJO</small></span>
+            </button>
+<button class="fighter-card heracles" data-char="heracles" aria-pressed="false" aria-label="헤라클레스 선택">
+              <span class="card-index">08</span><span class="selected-tick">✓</span>
+              <img id="heraclesPortrait" class="fighter-portrait" src="./art/portraits/heracles-thumb.webp?v=7.4" width="256" height="256" alt="" decoding="async" />
+              <span class="fighter-details"><strong>헤라클레스</strong><small>HERACLES</small></span>
+            </button>
+<button class="fighter-card allmight" data-char="allmight" aria-pressed="false" aria-label="올마이트 선택">
+              <span class="card-index">09</span><span class="selected-tick">✓</span>
+              <img id="allmightPortrait" class="fighter-portrait" src="./art/portraits/allmight-thumb.webp?v=7.4" width="256" height="256" alt="" decoding="async" />
+              <span class="fighter-details"><strong>올마이트</strong><small>ALL MIGHT</small></span>
+            </button><button class="fighter-card katja" data-char="katja" aria-pressed="false" aria-label="카티야 선택">
+              <span class="card-index">10</span><span class="selected-tick">✓</span>
+              <img id="katjaPortrait" class="fighter-portrait" src="./art/portraits/katja-thumb.webp?v=7.4" width="256" height="256" alt="" decoding="async" />
+              <span class="fighter-details"><strong>카티야</strong><small>KATJA</small></span>
+            </button><button class="fighter-card magnus" data-char="magnus" aria-pressed="false" aria-label="매그너스 선택">
+              <span class="card-index">11</span><span class="selected-tick">✓</span>
+              <img id="magnusPortrait" class="fighter-portrait" src="./art/portraits/magnus-thumb.webp?v=7.4" width="256" height="256" alt="" decoding="async" />
+              <span class="fighter-details"><strong>매그너스</strong><small>MAGNUS</small></span>
+            </button><button class="fighter-card ambessa" data-char="ambessa" aria-pressed="false" aria-label="암베사 선택">
+              <span class="card-index">12</span><span class="selected-tick">✓</span>
+              <img id="ambessaPortrait" class="fighter-portrait" src="./art/portraits/ambessa-thumb.webp?v=7.4" width="256" height="256" alt="" decoding="async" />
+              <span class="fighter-details"><strong>암베사</strong><small>AMBESSA</small></span>
+            </button><button class="fighter-card acheron" data-char="acheron" aria-pressed="false" aria-label="아케론 선택">
+              <span class="card-index">13</span><span class="selected-tick">✓</span>
+              <img id="acheronPortrait" class="fighter-portrait" src="./art/portraits/acheron-thumb.webp?v=7.4" width="256" height="256" alt="" decoding="async" />
+              <span class="fighter-details"><strong>아케론</strong><small>ACHERON</small></span>
+            </button><button class="fighter-card boothill" data-char="boothill" aria-pressed="false" aria-label="부트힐 선택">
+              <span class="card-index">14</span><span class="selected-tick">✓</span>
+              <img id="boothillPortrait" class="fighter-portrait" src="./art/portraits/boothill-thumb.webp?v=7.4" width="256" height="256" alt="" decoding="async" />
+              <span class="fighter-details"><strong>부트힐</strong><small>BOOTHILL</small></span>
+            </button></div>
+          <div class="selection-footer"><span class="selection-marker"></span><span>각자의 기술로, 같은 전장에서.</span></div>
+        </section>
+        <section id="fighterShowcase" class="fighter-showcase" aria-label="선택한 파이터 상세" data-fighter="saber">
+          <div class="showcase-top"><span id="selectedClass">SABER</span><span id="selectedIndex">01 / 14</span></div>
+          <div class="portrait-stage"><span class="hero-word" id="selectedEnglish" aria-hidden="true">SABER</span><img id="selectedPortrait" class="featured-portrait" src="./art/portraits/saber.webp?v=7.4" width="512" height="512" alt="알트리아 펜드래곤 상반신 초상화" decoding="async" fetchpriority="high" /><span class="portrait-line"></span></div>
+          <div class="fighter-identity"><div><p id="selectedTitle">기사왕</p><h2 id="selectedName">알트리아 펜드래곤</h2></div><span id="selectedRole" class="role-chip">근접 / 검격</span></div>
+          <div class="fighter-stats" aria-label="기본 능력치">
+            <div><p><span>체력</span><strong id="statHp">1000</strong></p><span class="stat-track"><i id="statHpBar"></i></span></div>
+            <div><p><span>이동 속도</span><strong id="statSpeed">4.5</strong></p><span class="stat-track"><i id="statSpeedBar"></i></span></div>
+            <div><p><span>강공격 피해</span><strong id="statPower">126</strong></p><span class="stat-track"><i id="statPowerBar"></i></span></div>
+          </div>
+          <div class="fighter-brief" aria-label="선택한 파이터 기술"><div id="heavyBrief" hidden><span class="keycap">K</span><p><strong id="heavyName"></strong><span id="heavyDescription"></span></p></div><div><span class="keycap">L</span><p><strong id="skillName">스트라이크 에어</strong><span id="skillDescription">전방으로 바람의 참격을 날립니다.</span></p></div><div><span class="keycap ultimate-key">U</span><p><strong id="ultimateName">엑스칼리버</strong><span id="ultimateDescription">거대한 황금빛 검으로 전방을 내려칩니다.</span></p></div></div>
+        </section>
+        <section class="launch-panel" aria-labelledby="modeTitle">
+          <div class="section-label"><h2 id="modeTitle"><span class="step-number">02</span> 매치 설정</h2><span class="setup-icon">↗</span></div>
+          <div class="mode-tabs" role="group" aria-label="대전 방식"><button class="active" data-mode="ai" aria-pressed="true"><span>VS</span><strong>AI 대전</strong></button><button data-mode="training" aria-pressed="false"><span>＋</span><strong>훈련장</strong></button><button data-mode="local" aria-pressed="false"><span>2P</span><strong>로컬 대전</strong></button><button data-mode="online" aria-pressed="false"><span>◎</span><strong>온라인</strong></button></div>
+          <div id="offlineOptions">
+            <p class="panel-kicker" id="modeKicker">SOLO CHALLENGE</p><h3 id="modeHeading">AI와 맞붙어라.</h3><p class="panel-description" id="modeDescription">상대의 빈틈을 읽고, 나만의 공방을 완성해 보세요.</p>
+            <div class="setup-fields"><label class="field-label opponent-field" for="opponent"><span id="opponentLabel">상대 파이터</span><span class="opponent-select"><img id="opponentPortrait" class="opponent-portrait" src="./art/portraits/archer-thumb.webp?v=7.4" width="256" height="256" alt="" decoding="async" /><select id="opponent"><option value="saber">알트리아</option>
+<option value="archer" selected>에미야</option>
+<option value="gilgamesh">길가메시</option>
+<option value="lancer">쿠 훌린</option>
+<option value="medusa">메두사</option>
+<option value="iskandar">이스칸다르</option>
+<option value="gojo">고죠 사토루</option>
+<option value="heracles">헤라클레스</option>
+<option value="allmight">올마이트</option>
+<option value="katja">카티야</option>
+<option value="magnus">매그너스</option>
+<option value="ambessa">암베사</option>
+<option value="acheron">아케론</option>
+<option value="boothill">부트힐</option></select></span></label><label id="difficultyField" class="field-label" for="difficulty">AI 난이도<select id="difficulty"><option value="easy">초급 · 기본기 연습</option><option value="normal" selected>중급 · 균형 잡힌 공방</option><option value="hard">고급 · 빈틈 없는 압박</option></select></label></div>
+            <div class="stage-tile"><span class="stage-overline">SELECTED STAGE</span><strong>달빛의 강변</strong><span>FUYUKI / NIGHT</span></div>
+            <div class="match-info"><span>매치 규칙</span><strong id="formatLabel">3판 2선승 · 90초</strong></div>
+            <button id="startButton" class="primary"><span id="startText">AI 대전 시작</span><span aria-hidden="true">↗</span></button>
+          </div>
+          <div id="onlineOptions" hidden><p class="panel-kicker">PRIVATE MATCH</p><h3>친구를 초대해.</h3><p class="panel-description">초대 링크 또는 방 코드로 입장하세요. 두 사람이 준비하면 시작합니다.</p><button id="createRoom" class="primary">새 대전방 만들기 <span>＋</span></button><div class="or"><span>초대받은 코드가 있나요?</span></div><form id="joinForm"><label class="field-label" for="roomCode">대전방 코드</label><div class="join-row"><input id="roomCode" placeholder="6자리 코드" maxlength="6" autocomplete="off" autocapitalize="characters" spellcheck="false" required/><button id="joinRoom" type="submit" class="secondary">참가 ↗</button></div></form><div class="online-note"><span class="live-dot"></span><p>친구와 같은 방에서<br><strong>1 대 1 실시간 대전</strong></p></div></div>
+          <div class="panel-foot"><span class="live-dot"></span><span id="assetStatus">CHOOSE YOUR FIGHTER</span></div>
+        </section>
+      </div>
+      <footer class="footer"><span>REBIRTH <b>©</b> THE DUEL CONTINUES</span><div><kbd>J</kbd> 약공격 <kbd>K</kbd> 강공격 <kbd>L</kbd> 스킬 <kbd>U</kbd> 궁극기</div><button data-help>전체 조작 보기 ↗</button></footer>
+    </main>
+    <section id="arena" hidden aria-label="대전 화면">
+      <header class="arena-top">
+        <button id="backButton" class="icon-button">← 로비</button
+        ><span class="arena-brand">REBIRTH <i>/ DUEL</i></span>
+        <div>
+          <span id="networkStatus">LOCAL · 60</span
+          ><button id="arenaSound" class="icon-button" aria-pressed="false">
+            소리 OFF</button
+          ><button id="pauseButton" class="icon-button">일시 정지</button
+          ><button id="fullscreenButton" class="icon-button">전체 화면</button>
+        </div>
+      </header>
+      <div id="gameFrame" class="game-frame">
+        <canvas
+          id="gameCanvas"
+          width="960"
+          height="540"
+          aria-label="픽셀 파이터 대전"
+        ></canvas>
+        <div id="hud" class="hud" hidden>
+          <div class="hud-side">
+            <div class="hud-name">
+              <strong id="name0">SABER</strong><span id="role0">YOU</span>
+            </div>
+            <div class="health-track">
+              <i id="health0"></i><b id="hp0">100</b>
+            </div>
+            <div class="meter-track"><i id="meter0"></i></div>
+            <div class="hud-meta">
+              <span id="status0">EXCALIBUR</span><span id="wins0">◇ ◇</span>
+            </div>
+            <div id="combatState0" class="combat-state" hidden>
+              <span id="shieldState0" class="state-shield" hidden></span><span id="slowState0" class="state-slow" hidden></span><span id="hasteState0" class="state-haste" hidden></span><span id="followupState0" class="state-followup" hidden></span><span id="bikeState0" class="state-bike" hidden></span><span id="suppressedState0" class="state-suppressed" hidden></span><span id="duelState0" class="state-duel" hidden></span><span id="exposedState0" class="state-exposed" hidden></span>
+            </div>
+            <div id="empower0" class="empower-status" hidden>
+              <span id="empowerLabel0">눈물 베기</span><span class="empower-pips" aria-hidden="true"><i></i><i></i><i></i></span><strong id="empowerCount0">3회</strong>
+            </div>
+            <div id="mount0" class="mount-status" hidden>
+              <div><strong id="mountName0">PEGASUS</strong><span id="mountTime0">8.0초</span></div>
+              <div class="mount-track"><i id="mountBar0"></i></div>
+              <p id="mountCharge0">L / U · 돌진 준비</p>
+            </div>
+          </div>
+          <div class="hud-center">
+            <span id="roundLabel">ROUND 01</span><strong id="timer">90</strong
+            ><span>FIRST TO 2</span>
+          </div>
+          <div class="hud-side right">
+            <div class="hud-name">
+              <strong id="name1">ARCHER</strong><span id="role1">OPPONENT</span>
+            </div>
+            <div class="health-track">
+              <i id="health1"></i><b id="hp1">100</b>
+            </div>
+            <div class="meter-track"><i id="meter1"></i></div>
+            <div class="hud-meta">
+              <span id="status1">UNLIMITED BLADE WORKS</span
+              ><span id="wins1">◇ ◇</span>
+            </div>
+            <div id="combatState1" class="combat-state" hidden>
+              <span id="shieldState1" class="state-shield" hidden></span><span id="slowState1" class="state-slow" hidden></span><span id="hasteState1" class="state-haste" hidden></span><span id="followupState1" class="state-followup" hidden></span><span id="bikeState1" class="state-bike" hidden></span><span id="suppressedState1" class="state-suppressed" hidden></span><span id="duelState1" class="state-duel" hidden></span><span id="exposedState1" class="state-exposed" hidden></span>
+            </div>
+            <div id="empower1" class="empower-status" hidden>
+              <span id="empowerLabel1">눈물 베기</span><span class="empower-pips" aria-hidden="true"><i></i><i></i><i></i></span><strong id="empowerCount1">3회</strong>
+            </div>
+            <div id="mount1" class="mount-status" hidden>
+              <div><strong id="mountName1">BUCEPHALUS</strong><span id="mountTime1">8.0초</span></div>
+              <div class="mount-track"><i id="mountBar1"></i></div>
+              <p id="mountCharge1">L / U · 돌진 준비</p>
+            </div>
+          </div>
+        </div>
+        <div id="phaseBanner" class="phase-banner" hidden>
+          <span id="phaseEyebrow">ROUND 01</span
+          ><strong id="phaseText">3</strong>
+        </div>
+        <div id="arenaOverlay" class="arena-overlay" hidden>
+          <div class="overlay-card">
+            <button id="roomLeave" class="overlay-leave" aria-label="대전방 나가기" hidden>나가기 ↗</button>
+            <div class="overlay-emblem" aria-hidden="true">R</div>
+            <p id="overlayKicker" class="eyebrow">PRIVATE DUEL</p>
+            <h2 id="overlayTitle">상대를 기다리는 중</h2>
+            <p id="overlayDescription"></p>
+            <div id="resultSummary" class="result-summary" hidden><div><span id="resultName0">SABER</span><strong id="resultScore0">0</strong></div><span class="result-divider">:</span><div><span id="resultName1">ARCHER</span><strong id="resultScore1">0</strong></div></div>
+            <div id="roomSlots" class="room-slots"></div>
+            <div id="roomActions" class="overlay-actions">
+              <button id="copyInvite" class="secondary">초대 링크 복사</button
+              ><button id="readyButton" class="primary">준비 완료</button>
+            </div>
+            <div id="resultActions" class="overlay-actions" hidden>
+              <button id="resultBack" class="secondary">로비로</button
+              ><button id="rematchButton" class="primary">다시 대전 →</button>
+            </div>
+            <div id="pauseActions" class="overlay-actions" hidden>
+              <button id="pauseBack" class="secondary">로비로</button>
+              <button id="resumeButton" class="primary">계속하기 →</button>
+            </div>
+          </div>
+        </div>
+        <div class="stage-caption">
+          FUYUKI <span>/</span> MOONLIT RIVERSIDE
+        </div>
+      </div>
+      <div id="trainingBar" class="training-bar" hidden>
+        <strong>TRAINING</strong
+        ><span id="trainingReadout">기술의 거리와 타이밍을 익혀 보세요.</span
+        ><button id="dummyToggle" class="secondary">더미: 대기</button
+        ><button id="hitboxToggle" class="secondary" aria-pressed="false">
+          판정 보기</button
+        ><button id="trainingReset" class="secondary">초기화</button>
+      </div>
+      <div id="touchControls" class="touch-controls">
+        <div id="joystick" class="joystick" aria-label="이동 조이스틱">
+          <div class="joystick-ring"></div>
+          <div id="joystickKnob" class="joystick-knob"></div>
+          <span>MOVE</span>
+        </div>
+        <div class="touch-actions">
+          <button data-input="JUMP" class="touch-small">
+            점프<small>W</small></button
+          ><button data-input="GUARD" class="touch-small">
+            가드<small>S</small></button
+          ><button data-input="DASH" class="touch-small">
+            회피<small>SPACE</small></button
+          ><button data-input="LIGHT"><span id="touchLightLabel">약공격</span><small id="touchLightHint">J</small></button
+          ><button data-input="HEAVY"><span id="touchHeavyLabel">강공격</span><small id="touchHeavyHint">K</small></button
+          ><button data-input="SKILL"><span id="touchSkillLabel">스킬</span><small id="touchSkillHint">L</small></button
+          ><button data-input="ULT" class="touch-ultimate">
+            <span id="touchUltimateLabel">궁극기</span><small id="touchUltimateHint">U · 100%</small>
+          </button>
+        </div>
+      </div>
+      <div class="arena-bottom">
+        <span id="controlHint">A D 이동 · W 점프 · S 가드 · SPACE 회피</span
+        ><button data-help>조작법 ↗</button
+        ><span id="frameStatus">60 FPS</span>
+      </div>
+    </section>
+    <dialog id="helpDialog">
+      <button id="closeHelp" class="close-dialog" aria-label="닫기">×</button>
+      <p class="eyebrow">HOW TO DUEL</p>
+      <h2>한순간을 노려라.</h2>
+      <div class="help-grid">
+        <div>
+          <h3>기본 조작</h3>
+          <p><kbd>A / D</kbd> 이동 <kbd>W</kbd> 점프 <kbd>S</kbd> 가드</p>
+          <p><kbd>J</kbd> 약공격 <kbd>K</kbd> 강공격 <kbd>L</kbd> 스킬</p>
+          <p><kbd>SPACE</kbd> 회피 <kbd>U</kbd> 궁극기</p>
+          <p><kbd>ESC</kbd> 일시 정지 (오프라인)</p>
+        </div>
+        <div>
+          <h3>대전의 감각</h3>
+          <p>
+            공격에는 준비 시간과 빈틈이 있어요. 헛친 공격의 후딜을 노려 보세요.
+          </p>
+          <p>
+            가드는 정면 공격을 막습니다. 회피의 짧은 무적 시간으로 투사체를
+            통과할 수 있어요.
+          </p>
+          <p>
+            공방으로 게이지를 채우면 궁극기를 쓸 수 있어요. 훈련장에서는 궁극기 게이지가
+            채워집니다. 기술별 재사용 시간은 버튼에서 확인하세요.
+          </p>
+        </div>
+      </div>
+      <p class="help-note">
+        아케론: <kbd>U</kbd>로 검을 강화한 뒤 <kbd>J</kbd>를 세 번 눌러 눈물 베기를 사용합니다. 세 번째 강화 공격 뒤 황천의 귀환이 자동으로 이어집니다.
+        체력 아래 표시와 J 버튼에서 남은 강화 공격 횟수를 확인하세요.
+      </p>
+      <p class="help-note">
+        부트힐: <kbd>J</kbd> 권총 사격 · <kbd>K</kbd> 뒤꿈치 차기. <kbd>L</kbd> 뜨거운 자갈 위 탱고는 5초 동안 J를 3연발 리볼버 패닝으로 강화하지만 서로 받는 피해도 늘립니다.
+        <kbd>U</kbd> 더스트 데빌의 선셋 로데오는 강력한 직선 사격이며, 가드하지 못한 상대를 잠시 둔화·취약 상태로 만듭니다.
+      </p>
+      <p class="help-note">
+        카티야: <kbd>J</kbd> 기본 사격 · <kbd>K</kbd> 조준 사격 · <kbd>L</kbd> 접근 금지 · <kbd>U</kbd> 정밀 조준.
+        매그너스: <kbd>L</kbd> 17대 1 회전 공격 · <kbd>U</kbd> 폭주 바이크. 주행 중 U를 다시 누르면 바이크를 발사합니다.
+        암베사: <kbd>K</kbd> 교활한 휩쓸기가 적중하면 제한 시간 안에 <kbd>K</kbd>를 다시 눌러 후속타인 파멸의 일격을 내려칩니다. <kbd>L</kbd> 배척 · <kbd>U</kbd> 공개 처형.
+      </p>
+      <p class="help-note">
+        메두사와 이스칸다르: 궁극기로 8초 동안 탑승합니다. 탑승 중에는
+        <kbd>L / U</kbd>로 돌진하고, <kbd>J / K</kbd>로 공격하세요. 이동·점프·가드·회피도
+        사용할 수 있어요. 돌진은 게이지를 추가로 쓰지 않으며, 두 버튼이 같은 재사용 시간을 공유합니다.
+        체력 아래에서 남은 탑승 시간과 돌진 재사용 시간을 확인하세요.
+      </p>
+      <p class="help-note">
+        로컬 2P: 1P는 위 조작 · 2P는 방향키 이동/점프/가드, 숫자패드 1/2/3 공격,
+        0 회피, 5 궁극기. 숫자패드 대신 7/8/9/0/- 키도 사용할 수 있어요.
+      </p>
+      <p class="help-note">
+        모바일: 가로 화면을 권장합니다. 왼쪽 조이스틱으로 이동하고 오른쪽
+        버튼으로 행동하세요.
+      </p>
+    </dialog>
+    <script type="module" src="./client.mjs"></script>
+  </body>
+</html>

@@ -1,0 +1,110 @@
+[
+  {
+    "handAnchor": [
+      2.75,
+      -46.4
+    ],
+    "gripAngle": 0.90757,
+    "sourceFrame": 0,
+    "scale": 0.2745664739884393
+  },
+  {
+    "handAnchor": [
+      4.39,
+      -71.66
+    ],
+    "gripAngle": -0.83776,
+    "sourceFrame": 1,
+    "scale": 0.2745664739884393
+  },
+  {
+    "handAnchor": [
+      -2.47,
+      -92.53
+    ],
+    "gripAngle": -1.74533,
+    "sourceFrame": 2,
+    "scale": 0.2745664739884393
+  },
+  {
+    "handAnchor": [
+      -23.06,
+      -86.21
+    ],
+    "gripAngle": -2.37365,
+    "sourceFrame": 3,
+    "scale": 0.2745664739884393
+  },
+  {
+    "handAnchor": [
+      -20.59,
+      -91.16
+    ],
+    "gripAngle": -2.53073,
+    "sourceFrame": 4,
+    "scale": 0.2745664739884393
+  },
+  {
+    "handAnchor": [
+      6.04,
+      -88.14
+    ],
+    "gripAngle": -1.78024,
+    "sourceFrame": 5,
+    "scale": 0.2745664739884393
+  },
+  {
+    "handAnchor": [
+      30.48,
+      -79.08
+    ],
+    "gripAngle": -0.55851,
+    "sourceFrame": 6,
+    "scale": 0.2745664739884393
+  },
+  {
+    "handAnchor": [
+      29.65,
+      -50.52
+    ],
+    "gripAngle": 0.34907,
+    "sourceFrame": 7,
+    "scale": 0.2745664739884393
+  },
+  {
+    "handAnchor": [
+      17.57,
+      -37.34
+    ],
+    "gripAngle": 0.90757,
+    "sourceFrame": 8,
+    "scale": 0.2745664739884393
+  },
+  {
+    "handAnchor": [
+      12.08,
+      -30.48
+    ],
+    "gripAngle": 1.3439,
+    "sourceFrame": 9,
+    "scale": 0.2745664739884393
+  },
+  {
+    "handAnchor": [
+      36.24,
+      -29.93
+    ],
+    "gripAngle": 0.8203,
+    "sourceFrame": 10,
+    "scale": 0.2745664739884393
+  },
+  {
+    "handAnchor": [
+      6.59,
+      -44.48
+    ],
+    "gripAngle": 0.90757,
+    "sourceFrame": 11,
+    "scale": 0.2745664739884393
+  }
+]
